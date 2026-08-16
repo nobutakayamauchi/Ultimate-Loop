@@ -35,6 +35,7 @@ The protected subject is the **human-important outcome** — not the current imp
 |---|---|
 | [**METHOD.md**](METHOD.md) | Canonical end-to-end method |
 | [**THREE_DESTRUCTIONS.md**](THREE_DESTRUCTIONS.md) | Raison d'être Destroy / METEOR / DARWIN |
+| [**TRACE_OBSERVATION_LAYER.md**](TRACE_OBSERVATION_LAYER.md) | Passive cross-cutting evidence observation and replay contract |
 | [**LINEAGE.md**](LINEAGE.md) | How WITNESS → Five Principles → RTS Evolution → Ultimate Loop happened |
 | [**SUPERSESSION_RULE.md**](SUPERSESSION_RULE.md) | Why Ultimate Loop itself has no permanent right to survive |
 
@@ -131,6 +132,8 @@ WISH / PROBLEM / EVENT
 → repeat
 ```
 
+TRACE may observe material transitions across this flow without becoming a gate or promotion authority.
+
 Hard reminders:
 
 ```text
@@ -138,9 +141,11 @@ NO CURRENT LANDSCAPE SWEEP → NO SUPERIORITY CLAIM
 DEPLOYED != OBSERVED_CORRECT
 PATCH APPLIED != FIX VALIDATED
 NEW OCCUPANT != NEW MEMORY
+TRACE OBSERVER != GOVERNOR
 ```
 
-→ [Canonical method](METHOD.md)
+→ [Canonical method](METHOD.md)  
+→ [TRACE observation layer](TRACE_OBSERVATION_LAYER.md)
 
 ---
 
@@ -198,6 +203,7 @@ Historical evidence remains where it was produced:
 - [Original RTS / reconstruction evidence](https://github.com/nobutakayamauchi/RTS)
 - [WITNESS](https://github.com/nobutakayamauchi/WITNESS)
 - [RTS Evolution](https://github.com/nobutakayamauchi/RTS-Evolution)
+- [TRACE](https://github.com/nobutakayamauchi/TRACE) — replaceable evidence observer / reconstruction substrate
 
 The goal is not to preserve a brand or a codebase forever.
 
