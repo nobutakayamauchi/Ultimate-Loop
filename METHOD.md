@@ -54,6 +54,35 @@ Offline/library artifacts may have no live deployment surface. Their workload mu
 
 ---
 
+## TRACE observation layer
+
+Ultimate Loop may attach a passive observer to preserve material transitions, source evidence, human decisions, UNKNOWN/CONFLICT states, findings, corrections, test outcomes, deployment identity, and external-evidence boundaries.
+
+The current observer profile is TRACE.
+
+```text
+ULTIMATE LOOP DECIDES / ACTS
+TRACE OBSERVES / PRESERVES
+```
+
+TRACE is cross-cutting and does not become a fourth loop.
+
+Hard boundaries:
+
+- `TRACE OBSERVER != GOVERNOR`;
+- observation does not create promotion authority;
+- a Git commit or PR is evidence of a repository transition, not automatic proof of semantic promotion or runtime correctness;
+- source evidence remains distinct from derived claims and metrics;
+- retrospective reconstruction must never masquerade as live observation;
+- hidden model chain-of-thought is outside the evidence contract;
+- observer loss cannot silently become a claim of complete reconstructability.
+
+Ultimate Loop remains operable without TRACE unless the frozen workload explicitly makes auditability mandatory. When TRACE evidence is missing, the correct result is degraded reconstructability / UNKNOWN, not invented success.
+
+The detailed observer contract is defined in [TRACE_OBSERVATION_LAYER.md](TRACE_OBSERVATION_LAYER.md). TRACE itself remains replaceable and is subject to Raison d'être, METEOR, and DARWIN like any other occupant.
+
+---
+
 ## Gate 0 — Current landscape discovery
 
 Before a new program or challenger may claim superiority, refresh the surrounding implementation landscape.
@@ -266,6 +295,6 @@ Every survivor inherits useful memory of the dead:
 
 ## Method invariant
 
-**Search current reality before claiming superiority. Kill the need. Kill the implementation. Keep challenging the incumbent when reality changes. Verify deployed reality before calling it stable. Preserve recovery capability. Preserve the human-important outcome and the memory required to regenerate it.**
+**Search current reality before claiming superiority. Kill the need. Kill the implementation. Keep challenging the incumbent when reality changes. Verify deployed reality before calling it stable. Preserve recovery capability. Preserve the human-important outcome and the memory required to regenerate it. Observe material history when reconstructability matters, without allowing the observer to become unearned authority.**
 
 Historical canonical source: [RTS / thin-rts / ULTIMATE_LOOP_METHOD.md](https://github.com/nobutakayamauchi/RTS/blob/main/thin-rts/ULTIMATE_LOOP_METHOD.md)
