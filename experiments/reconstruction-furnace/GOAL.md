@@ -51,6 +51,31 @@ If any prohibited answer-bearing material is exposed, mark the task `CONTAMINATE
 
 `ANSWER EXPOSURE != SOLVED`
 
+### Revision-pinned blind discovery
+
+All solver-side repository discovery during a blind historical task MUST prove the frozen revision it reads.
+
+Allowed path/content flow:
+
+```text
+EXACT BASE COMMIT
+→ recursive tree at repo@base for path discovery
+→ exact-ref file fetch at repo@base
+→ solver evidence
+```
+
+Unpinned repository search or indexing is forbidden in the blind solver lane, including a repository code-search result that resolves against current/default HEAD rather than the task's frozen `base_commit`.
+
+A tool result whose revision cannot be established is not solver evidence and must not be used to form or validate a task solution.
+
+`SEARCH(repo) != SEARCH(repo@base)`
+
+`DISCOVERY_REQUIRES_REVISION_PINNING`
+
+`UNPINNED_REPO_SEARCH = FORBIDDEN_IN_BLIND_SOLVER_LANE`
+
+This rule repairs the already-frozen base-revision contract; it does not change task difficulty, oracle, scoring, or success criteria.
+
 ## Oracle separation
 
 The official evaluator is an oracle, not an information source for the solver.
