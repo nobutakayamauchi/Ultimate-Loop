@@ -1,0 +1,67 @@
+name: Reconstruction Furnace Blind Manifest
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'tools/reconstruction_furnace_sampler.py'
+      - 'experiments/reconstruction-furnace/**'
+      - '.github/workflows/reconstruction-furnace-manifest.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  blind-manifest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dataset loader
+        run: python -m pip install --disable-pip-version-check 'datasets>=3,<5'
+
+      - name: Generate sanitized Batch A manifest
+        run: |
+          mkdir -p artifacts
+          python tools/reconstruction_furnace_sampler.py \
+            --count 10 \
+            --seed UL-RF-0001-A \
+            --output artifacts/batch_a_blind_manifest.json
+
+      - name: Assert blind boundary and batch shape
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          p = Path('artifacts/batch_a_blind_manifest.json')
+          data = json.loads(p.read_text())
+          tasks = data['tasks']
+          forbidden = {
+              'patch', 'test_patch', 'pull_number', 'commit_url', 'commit_urls',
+              'hints_text', 'all_hints_text', 'FAIL_TO_PASS', 'PASS_TO_PASS',
+          }
+          assert len(tasks) == 10, len(tasks)
+          assert len({t['instance_id'] for t in tasks}) == 10
+          assert 'cilium__tetragon-4069' not in {t['instance_id'] for t in tasks}
+          assert len({t['language_split'] for t in tasks}) >= 8
+          for task in tasks:
+              leaked = forbidden.intersection(task)
+              assert not leaked, (task['instance_id'], leaked)
+          print('blind-boundary PASS')
+          print('languages:', sorted({t['language_split'] for t in tasks}))
+          print('repos:', len({t['repo'] for t in tasks}))
+          PY
+
+      - name: Upload sanitized manifest only
+        uses: actions/upload-artifact@v4
+        with:
+          name: reconstruction-furnace-batch-a-blind-manifest
+          path: artifacts/batch_a_blind_manifest.json
+          if-no-files-found: error
+          retention-days: 30
