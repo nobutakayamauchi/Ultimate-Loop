@@ -81,6 +81,79 @@ TASK_SELECTED
 
 Generated Attack, Replay Packet, Bounded Destruction, External Nemesis, and Formalization Escalation are available only through the applicability rules already present in the canonical Ultimate Loop method.
 
+## In-run problem handling rule
+
+This rule is experiment-local during Batch A. It may repair the test harness so the already-frozen experiment can be executed honestly, but it may not silently evolve the canonical Ultimate Loop method or make the benchmark easier.
+
+When a new execution, harness, evidence, environment, or test-design problem appears:
+
+```text
+PROBLEM
+→ DA
+→ COUNTER-DA
+→ ESSENTIALITY REDUCTION
+→ SELF_RESOLVABLE | HUMAN_REQUIRED | AMBIGUOUS
+```
+
+### DA / Counter-DA adequacy
+
+Consider materially distinct conditions until another pass produces no materially new perspective. Do not equate token/time/budget exhaustion with adequacy or convergence.
+
+At minimum challenge:
+
+- blind integrity / future-answer exposure;
+- frozen task, base revision, oracle and scoring identity;
+- comparability with the rest of Batch A;
+- target/environment/deployment identity where applicable;
+- whether the proposed repair restores a frozen assumption or changes the experiment;
+- contamination, replayability and evidence honesty;
+- authorization/credential/privilege requirements;
+- reversibility and side effects.
+
+Essentiality reduction removes only unnecessary machinery. It may not remove independence, evidence, safety, blind integrity, frozen identities, or explicit stop states merely to continue the run.
+
+### SELF_RESOLVABLE
+
+The run may repair the problem and continue without human approval only when all of the following are supported by evidence:
+
+- the root cause and repair are sufficiently clear after DA / Counter-DA;
+- the repair restores or enforces an already-frozen experiment condition rather than changing task difficulty, oracle, scoring, sample meaning, or success criteria;
+- the repair does not require new authentication, credentials, privilege, or authorization;
+- the repair does not require an irreversible action;
+- the repair does not create an unbounded or materially larger blast radius;
+- blind integrity remains intact for the task being continued;
+- the repair can itself be verified before solver scoring resumes.
+
+Record the finding, repair, verification, and resume point. Then return to the test automatically.
+
+### HUMAN_REQUIRED
+
+Stop and return to the user before acting when any of the following is true:
+
+- new authentication, credentials, privilege, consent, or authorization is required;
+- an irreversible action is required;
+- the proposed repair would alter a frozen goal, task meaning, oracle, scoring rule, success criterion, or materially change Batch A comparability;
+- blind integrity cannot be established;
+- the problem remains materially unresolved after DA / Counter-DA and essentiality reduction.
+
+### AMBIGUOUS
+
+If the conclusion is genuinely borderline, competing interpretations remain material, or confidence is insufficient to classify the repair as `SELF_RESOLVABLE`, stop and return the decision to the user.
+
+`AMBIGUOUS != SELF_AUTHORIZED`
+
+`AUTHORIZATION_REQUIRED => HUMAN_REQUIRED`
+
+`IRREVERSIBLE => HUMAN_REQUIRED`
+
+`REPAIR_FROZEN_CONTRACT != CHANGE_FROZEN_CONTRACT`
+
+### Contamination is not repairable retroactively
+
+A contaminated task cannot become blind again merely because the leaking mechanism is later fixed. Preserve the contamination event, exclude that task from blind scoring, repair the mechanism if `SELF_RESOLVABLE`, verify the repair, then continue with the deterministic replacement procedure.
+
+`FIXED_LEAK != UNSEEN_INFORMATION`
+
 ## Carryover between tasks
 
 Allowed carryover:
