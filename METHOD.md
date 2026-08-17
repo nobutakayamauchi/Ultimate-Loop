@@ -129,6 +129,14 @@ A bounded new-build candidate is permitted when either:
 
 `PROTOTYPE AUTHORIZED != PROMOTION AUTHORIZED`
 
+Raison d'être also carries an explicit anti-scaffold rule:
+
+`MORE SCAFFOLD != MORE CAPABILITY`
+
+Before adding a permanent agent role, adapter, watcher, control-plane, specialized wrapper, or custom service, consider whether an existing simpler holder, composition, ordinary tool/API/shell path, bounded manual step, procedure, or small glue can satisfy the **same frozen requirements**. Simpler does not win by deleting necessary independence, authority separation, evidence, safety, reproducibility, reliability, or recovery. Specialization must earn its whole-life cost.
+
+This is a reinforcement of Raison d'être, not a new loop or mandatory candidate waterfall.
+
 ---
 
 ## Loop 2 — METEOR Crucible
@@ -157,6 +165,46 @@ A benchmark win alone is not enough. A challenger cannot win by deleting inherit
 Possible outcomes include:
 
 `KEEP / PARTIAL_REPLACE / FULL_REPLACE / STANDBY / REJECT`
+
+---
+
+## Generated destruction / replay extension
+
+METEOR and the Reality Gate may use additional destructive/evidence modes when the frozen workload justifies them. These modes do not create a fourth loop and do not require any named external tool.
+
+Before promotion, applicable modes are classified explicitly:
+
+```text
+REQUIRED / OPTIONAL / NOT_APPLICABLE / BLOCKED
+```
+
+Their execution/result state is separate:
+
+```text
+PASS / FAIL / BOUND_EXHAUSTED / UNEXPLORED / UNKNOWN
+```
+
+`NOT_RUN != NOT_APPLICABLE` and `BOUND_EXHAUSTED != CONVERGENCE`.
+
+The extension provides:
+
+- **Generated Attack Lane** — conditional schema/grammar/property/state-model driven values and operation sequences, with oracle/harness/system-failure separation and explicit authority before destructive side effects;
+- **Replay Packet** — a cross-cutting, secret-safe compact manifest for replaying material failures inside the captured deterministic envelope;
+- **Bounded Destruction** — explicit limits for self-expanding loops/generators/retries/queues/parallelism/time/tokens/tool calls/cost/storage, with exhaustion preserved as an open frontier rather than false convergence;
+- **External Nemesis Lane** — conditional controlled fault injection against the world around the implementation, only inside explicit target/authorization/blast-radius/recovery boundaries;
+- **Formalization Escalation** — conditional state/model checking for recurring high-severity order/concurrency/authority/recovery problems, never a substitute for implementation or runtime evidence.
+
+Core distinctions include:
+
+```text
+GENERATOR OUTPUT != ORACLE AUTHORITY
+SEED != COMPLETE REPLAY PACKET
+AFTER FAULT != BECAUSE OF FAULT
+MODEL CHECK PASS != RUNTIME EVIDENCE
+CONVERGED_UNDER_CURRENT_SCOPE != PROMOTION_READY
+```
+
+The detailed canonical contract is [GENERATED_DESTRUCTION_EXTENSION.md](GENERATED_DESTRUCTION_EXTENSION.md). Its external-source lineage and DA history remain evidence for why these rules exist; the named source projects are not permanent method dependencies.
 
 ---
 
@@ -295,6 +343,6 @@ Every survivor inherits useful memory of the dead:
 
 ## Method invariant
 
-**Search current reality before claiming superiority. Kill the need. Kill the implementation. Keep challenging the incumbent when reality changes. Verify deployed reality before calling it stable. Preserve recovery capability. Preserve the human-important outcome and the memory required to regenerate it. Observe material history when reconstructability matters, without allowing the observer to become unearned authority.**
+**Search current reality before claiming superiority. Kill the need. Kill the implementation. Keep challenging the incumbent when reality changes. Verify deployed reality before calling it stable. Preserve recovery capability. Preserve the human-important outcome and the memory required to regenerate it. Observe material history when reconstructability matters, without allowing the observer to become unearned authority. Generate and replay destructive evidence when justified, bound destructive expansion, distinguish untested/blocked scope from convergence, and never let a generator, fault injector, model checker, or observer silently become promotion authority.**
 
 Historical canonical source: [RTS / thin-rts / ULTIMATE_LOOP_METHOD.md](https://github.com/nobutakayamauchi/RTS/blob/main/thin-rts/ULTIMATE_LOOP_METHOD.md)
