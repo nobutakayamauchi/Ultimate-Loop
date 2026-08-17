@@ -31,9 +31,10 @@ jobs:
           python tools/reconstruction_furnace_sampler.py \
             --count 10 \
             --seed UL-RF-0001-A \
+            --deny rsyslog__rsyslog-6047 \
             --output artifacts/batch_a_blind_manifest.json
 
-      - name: Assert blind boundary and batch shape
+      - name: Assert blind boundary and replacement-only batch shape
         run: |
           python - <<'PY'
           import json
@@ -42,18 +43,38 @@ jobs:
           p = Path('artifacts/batch_a_blind_manifest.json')
           data = json.loads(p.read_text())
           tasks = data['tasks']
+          ids = {t['instance_id'] for t in tasks}
           forbidden = {
               'patch', 'test_patch', 'pull_number', 'commit_url', 'commit_urls',
               'hints_text', 'all_hints_text', 'FAIL_TO_PASS', 'PASS_TO_PASS',
           }
+          contaminated = {
+              'cilium__tetragon-4069',
+              'rsyslog__rsyslog-6047',
+          }
+          preserved = {
+              'TrenchBroom__TrenchBroom-5133',
+              'kyverno__kyverno-15561',
+              'casey__just-2835',
+              'FasterXML__jackson-databind-5837',
+              'formbricks__formbricks-6302',
+              'sveltejs__svelte-16542',
+              'dotnet__winforms-13797',
+              'MudBlazor__MudBlazor-12915',
+              'OpenRCT2__OpenRCT2-26315',
+          }
           assert len(tasks) == 10, len(tasks)
-          assert len({t['instance_id'] for t in tasks}) == 10
-          assert 'cilium__tetragon-4069' not in {t['instance_id'] for t in tasks}
+          assert len(ids) == 10
+          assert not (ids & contaminated), ids & contaminated
+          assert preserved <= ids, sorted(preserved - ids)
+          assert len(ids - preserved) == 1, sorted(ids - preserved)
           assert len({t['language_split'] for t in tasks}) >= 8
           for task in tasks:
               leaked = forbidden.intersection(task)
               assert not leaked, (task['instance_id'], leaked)
           print('blind-boundary PASS')
+          print('replacement-only PASS')
+          print('replacement:', sorted(ids - preserved))
           print('languages:', sorted({t['language_split'] for t in tasks}))
           print('repos:', len({t['repo'] for t in tasks}))
           PY
