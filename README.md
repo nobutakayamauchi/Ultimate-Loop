@@ -35,6 +35,7 @@ The protected subject is the **human-important outcome** — not the current imp
 |---|---|
 | [**METHOD.md**](METHOD.md) | Canonical end-to-end method |
 | [**THREE_DESTRUCTIONS.md**](THREE_DESTRUCTIONS.md) | Raison d'être Destroy / METEOR / DARWIN |
+| [**EXTERNAL_CAPABILITY_FEED.md**](EXTERNAL_CAPABILITY_FEED.md) | Replaceable current-reality / challenger-supply layer for Gate 0 + WATCH/DARWIN |
 | [**TRACE_OBSERVATION_LAYER.md**](TRACE_OBSERVATION_LAYER.md) | Passive cross-cutting evidence observation and replay contract |
 | [**LINEAGE.md**](LINEAGE.md) | How WITNESS → Five Principles → RTS Evolution → Ultimate Loop happened |
 | [**SUPERSESSION_RULE.md**](SUPERSESSION_RULE.md) | Why Ultimate Loop itself has no permanent right to survive |
@@ -90,6 +91,37 @@ SURVIVE
 
 ---
 
+## External Capability Feed
+
+Ultimate Loop now makes the WITNESS-derived "look outside before building/preserving" responsibility explicit as a **replaceable challenger-supply layer**.
+
+It can receive current capability changes from official docs, release feeds, GitHub/package registries, APIs, human research, AI-assisted research, provider-native signals, or other replaceable sources.
+
+It is deliberately **not** a fourth loop, crawler requirement, or promotion engine.
+
+```text
+EXTERNAL SIGNAL
+→ Current Discovery Sweep / WATCH
+→ material candidate only
+→ existing Raison d'être / METEOR / DARWIN authority
+```
+
+Hard distinctions:
+
+```text
+NEW != BETTER
+FEED HIT != VERIFIED CAPABILITY
+NO FEED HIT != NO EXTERNAL CHANGE
+DISCOVERY != PROMOTION AUTHORITY
+```
+
+The feed may reduce discovery latency, but a material superiority/replacement claim still requires a current targeted landscape sweep and the existing applicable Ultimate Loop gates.
+
+→ [External Capability Feed contract](EXTERNAL_CAPABILITY_FEED.md)  
+→ [DA / Counter-DA](EXTERNAL_CAPABILITY_FEED_DA_2026-08-19.md)
+
+---
+
 ## The Five Principles That Survived WITNESS
 
 WITNESS did **not** survive as a software platform. Its final necessity tests destroyed the need for a standing WITNESS implementation, while five semantic protections survived:
@@ -110,7 +142,7 @@ Those principles became part of the foundation used to reconstruct RTS into **RT
 ## Canonical Flow
 
 ```text
-WISH / PROBLEM / EVENT
+WISH / PROBLEM / EVENT / EXTERNAL CAPABILITY SIGNAL
 → FROZEN SUBJECT + WORKLOAD
 → CURRENT DISCOVERY SWEEP
 → RAISON D'ÊTRE DESTROY
@@ -124,10 +156,11 @@ WISH / PROBLEM / EVENT
 → POST-DEPLOY DEBUG / REALITY GATE
 → DEPLOYMENT_VALIDATED / FIX_VALIDATED
 → STABLE CORE / MOVABLE FRAME
-→ WATCH
+→ WATCH + EXTERNAL CAPABILITY FEED
+→ PERIODIC CHALLENGER SWEEP + EVENT TRIGGERS
 → MATERIAL FAILURE / BETTER CHALLENGER / ERA CHANGE
 → DARWIN ARENA
-→ SURVIVE / RECOMPOSE / PARTIAL REPLACE / FULL REPLACE / DIE
+→ SURVIVE / RECOMPOSE / PARTIAL_REPLACE / FULL_REPLACE / DIE
 → PHOENIX LINEAGE PRESERVES MEMORY + REGENERATION CAPABILITY
 → repeat
 ```
@@ -138,6 +171,7 @@ Hard reminders:
 
 ```text
 NO CURRENT LANDSCAPE SWEEP → NO SUPERIORITY CLAIM
+EXTERNAL CAPABILITY FEED != FOURTH LOOP
 DEPLOYED != OBSERVED_CORRECT
 PATCH APPLIED != FIX VALIDATED
 NEW OCCUPANT != NEW MEMORY
@@ -145,6 +179,7 @@ TRACE OBSERVER != GOVERNOR
 ```
 
 → [Canonical method](METHOD.md)  
+→ [External Capability Feed](EXTERNAL_CAPABILITY_FEED.md)  
 → [TRACE observation layer](TRACE_OBSERVATION_LAYER.md)
 
 ---
