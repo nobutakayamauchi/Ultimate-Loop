@@ -27,7 +27,7 @@ This language applies to ideas, requirements, architectures, implementations, de
 ## Canonical development flow
 
 ```text
-WISH / PROBLEM / EVENT
+WISH / PROBLEM / EVENT / EXTERNAL CAPABILITY SIGNAL
 → FROZEN SUBJECT + WORKLOAD
 → CURRENT DISCOVERY SWEEP
 → LOOP 1: RAISON D'ÊTRE DESTROY
@@ -41,8 +41,8 @@ WISH / PROBLEM / EVENT
 → POST-DEPLOY DEBUG / REALITY GATE
 → DEPLOYMENT_VALIDATED / FIX_VALIDATED
 → STABLE CORE / MOVABLE FRAME
-→ WATCH
-→ WEEKLY CHALLENGER SWEEP + EVENT TRIGGERS
+→ WATCH + EXTERNAL CAPABILITY FEED
+→ PERIODIC CHALLENGER SWEEP + EVENT TRIGGERS
 → MATERIAL FAILURE / BETTER CHALLENGER / ERA CHANGE
 → LOOP 3: DARWIN ARENA / KNOCKOUT MATCH
 → SURVIVE / RECOMPOSE / PARTIAL REPLACE / FULL REPLACE / DIE
@@ -98,6 +98,45 @@ Ultimate Loop does not require an owned crawler.
 `DISCOVERY != METEOR WIN != PROMOTION AUTHORITY`
 
 A materially new candidate, architecture term, dependency, provider capability, or failure mode reopens the frontier.
+
+---
+
+## External Capability Feed — challenger supply, not a fourth loop
+
+Ultimate Loop may maintain or consume a replaceable **External Capability Feed** that supplies current external capability changes into Gate 0, WATCH, and DARWIN.
+
+It may observe material changes in models, agents, APIs, SDKs, MCP/tool integrations, OSS/packages, hosted services, partnerships/integrations, pricing, availability, limits, deprecations, security, infrastructure, workflow tools, and development protocols.
+
+The feed owns no decision authority.
+
+```text
+EXTERNAL SIGNAL
+!= VERIFIED CAPABILITY
+!= METEOR WIN
+!= DARWIN WIN
+!= PROMOTION AUTHORITY
+```
+
+A signal should be triaged only when it plausibly maps to a frozen responsibility/current occupant and could materially change necessity, architecture, whole-life fitness, operator burden, reliability, security/privacy, cost, recoverability, provider risk, or evidence maturity.
+
+`NEW != BETTER`
+
+`NO FEED HIT != NO EXTERNAL CHANGE`
+
+`STALE FEED != CURRENT LANDSCAPE`
+
+Repeated coverage of the same capability does not reopen work without materially new evidence.
+
+Ultimate Loop owns the responsibility to refresh current reality, not a particular crawler, scheduler, model, provider, database, or monitoring stack. The feed may be manual, scheduled, event-driven, AI-assisted, provider-native, registry-backed, or composed from replaceable external services.
+
+The feed remains bounded by workload-scoped source, cadence, cost/token/API, retention, privacy, and escalation limits. It must not export private frozen workloads or secrets without explicit authority.
+
+Before a material superiority or replacement claim, Gate 0's targeted current sweep remains required even when a standing feed exists.
+
+Ultimate Loop remains operable without a live feed. If a claim depends on current external superiority and current evidence is unavailable, the correct result is an explicit stale/UNKNOWN boundary rather than invented absence of challengers.
+
+Detailed contract: [EXTERNAL_CAPABILITY_FEED.md](EXTERNAL_CAPABILITY_FEED.md).  
+DA / Counter-DA: [EXTERNAL_CAPABILITY_FEED_DA_2026-08-19.md](EXTERNAL_CAPABILITY_FEED_DA_2026-08-19.md).
 
 ---
 
@@ -256,6 +295,7 @@ A credible challenger may be triggered by:
 - model capability;
 - OS/platform change;
 - API/OSS/SaaS change;
+- new integration/partnership that creates a materially reachable capability;
 - price;
 - provider behavior;
 - security;
@@ -281,6 +321,8 @@ No implementation gains a permanent right to exist.
 STABLE means stable-by-default, not ignored forever.
 
 WATCH observes material changes in models, libraries, APIs, algorithms, OSS, competitors, infrastructure, pricing, degradation/deprecation, vulnerabilities, shutdowns, and real-world evidence.
+
+The External Capability Feed is a replaceable supply path into WATCH. It may reduce discovery latency, but it does not replace periodic targeted challenger sweeps or create automatic replacement authority.
 
 A discovery is a candidate trigger, not automatic replacement authority.
 
@@ -343,6 +385,6 @@ Every survivor inherits useful memory of the dead:
 
 ## Method invariant
 
-**Search current reality before claiming superiority. Kill the need. Kill the implementation. Keep challenging the incumbent when reality changes. Verify deployed reality before calling it stable. Preserve recovery capability. Preserve the human-important outcome and the memory required to regenerate it. Observe material history when reconstructability matters, without allowing the observer to become unearned authority. Generate and replay destructive evidence when justified, bound destructive expansion, distinguish untested/blocked scope from convergence, and never let a generator, fault injector, model checker, or observer silently become promotion authority.**
+**Search current reality before claiming superiority. Keep a bounded, replaceable path for material external capability changes to reach discovery and challenger selection without granting that feed authority. Kill the need. Kill the implementation. Keep challenging the incumbent when reality changes. Verify deployed reality before calling it stable. Preserve recovery capability. Preserve the human-important outcome and the memory required to regenerate it. Observe material history when reconstructability matters, without allowing the observer to become unearned authority. Generate and replay destructive evidence when justified, bound destructive expansion, distinguish untested/blocked scope from convergence, and never let a generator, fault injector, model checker, observer, or external capability feed silently become promotion authority.**
 
 Historical canonical source: [RTS / thin-rts / ULTIMATE_LOOP_METHOD.md](https://github.com/nobutakayamauchi/RTS/blob/main/thin-rts/ULTIMATE_LOOP_METHOD.md)
