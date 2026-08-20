@@ -35,6 +35,7 @@ The protected subject is the **human-important outcome** — not the current imp
 |---|---|
 | [**METHOD.md**](METHOD.md) | Canonical end-to-end method |
 | [**THREE_DESTRUCTIONS.md**](THREE_DESTRUCTIONS.md) | Raison d'être Destroy / METEOR / DARWIN |
+| [**EXPOSURE_GATE.md**](EXPOSURE_GATE.md) | Cross-cutting Human Gate for PUBLIC / SPLIT / PRIVATE publication boundaries |
 | [**EXTERNAL_CAPABILITY_FEED.md**](EXTERNAL_CAPABILITY_FEED.md) | Replaceable current-reality / challenger-supply layer for Gate 0 + WATCH/DARWIN |
 | [**TRACE_OBSERVATION_LAYER.md**](TRACE_OBSERVATION_LAYER.md) | Passive cross-cutting evidence observation and replay contract |
 | [**LINEAGE.md**](LINEAGE.md) | How WITNESS → Five Principles → RTS Evolution → Ultimate Loop happened |
@@ -88,6 +89,29 @@ SURVIVE
 **No implementation receives a permanent right to exist.**
 
 → [Read the full Three Destructions](THREE_DESTRUCTIONS.md)
+
+---
+
+## Exposure Gate
+
+A project that was rationally developed in public can become commercially or security-sensitive later. Ultimate Loop therefore treats exposure as a movable boundary rather than a permanent repository property.
+
+```text
+PUBLIC ONCE != PUBLIC FOREVER
+PRIVATE ONCE != PRIVATE FOREVER
+```
+
+When monetization, external onboarding, reusable proprietary assets, security-sensitive internals, or Beta/production distribution become material, the **Exposure Gate** asks a human to choose:
+
+```text
+PUBLIC
+SPLIT
+PRIVATE
+```
+
+`SPLIT` preserves public evidence/showcase value while moving the commercial or proprietary core behind a closed boundary. The gate never changes visibility or licensing automatically, and changing visibility never pretends that previously public source was never public.
+
+→ [Exposure Gate contract](EXPOSURE_GATE.md)
 
 ---
 
@@ -151,12 +175,15 @@ WISH / PROBLEM / EVENT / EXTERNAL CAPABILITY SIGNAL
 → BOUNDED PROTOTYPE / REALITY CANDIDATES
 → METEOR CRUCIBLE
 → PROMOTED SURVIVOR
+→ EXPOSURE GATE WHEN EXTERNAL / COMMERCIAL BOUNDARY APPLIES
+→ PUBLIC / SPLIT / PRIVATE
 → DEPLOY / PUBLISH WHEN APPLICABLE
 → DEPLOYMENT IDENTITY
 → POST-DEPLOY DEBUG / REALITY GATE
 → DEPLOYMENT_VALIDATED / FIX_VALIDATED
 → STABLE CORE / MOVABLE FRAME
 → WATCH + EXTERNAL CAPABILITY FEED
+→ MATERIAL EXPOSURE CHANGE MAY REOPEN EXPOSURE GATE
 → PERIODIC CHALLENGER SWEEP + EVENT TRIGGERS
 → MATERIAL FAILURE / BETTER CHALLENGER / ERA CHANGE
 → DARWIN ARENA
@@ -172,6 +199,9 @@ Hard reminders:
 ```text
 NO CURRENT LANDSCAPE SWEEP → NO SUPERIORITY CLAIM
 EXTERNAL CAPABILITY FEED != FOURTH LOOP
+EXPOSURE GATE != FOURTH DESTRUCTION
+PUBLIC ONCE != PUBLIC FOREVER
+EXPOSURE WARNING != VISIBILITY MUTATION AUTHORITY
 DEPLOYED != OBSERVED_CORRECT
 PATCH APPLIED != FIX VALIDATED
 NEW OCCUPANT != NEW MEMORY
@@ -179,6 +209,7 @@ TRACE OBSERVER != GOVERNOR
 ```
 
 → [Canonical method](METHOD.md)  
+→ [Exposure Gate](EXPOSURE_GATE.md)  
 → [External Capability Feed](EXTERNAL_CAPABILITY_FEED.md)  
 → [TRACE observation layer](TRACE_OBSERVATION_LAYER.md)
 

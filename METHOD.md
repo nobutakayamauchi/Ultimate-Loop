@@ -36,12 +36,15 @@ WISH / PROBLEM / EVENT / EXTERNAL CAPABILITY SIGNAL
 → BOUNDED PROTOTYPE / REALITY CANDIDATES
 → LOOP 2: METEOR CRUCIBLE
 → PROMOTED SURVIVOR
+→ EXPOSURE GATE WHEN EXTERNAL / COMMERCIAL BOUNDARY APPLIES
+→ PUBLIC / SPLIT / PRIVATE
 → DEPLOY / PUBLISH WHEN APPLICABLE
 → DEPLOYMENT IDENTITY
 → POST-DEPLOY DEBUG / REALITY GATE
 → DEPLOYMENT_VALIDATED / FIX_VALIDATED
 → STABLE CORE / MOVABLE FRAME
 → WATCH + EXTERNAL CAPABILITY FEED
+→ MATERIAL EXPOSURE CHANGE MAY REOPEN EXPOSURE GATE
 → PERIODIC CHALLENGER SWEEP + EVENT TRIGGERS
 → MATERIAL FAILURE / BETTER CHALLENGER / ERA CHANGE
 → LOOP 3: DARWIN ARENA / KNOCKOUT MATCH
@@ -247,6 +250,40 @@ The detailed canonical contract is [GENERATED_DESTRUCTION_EXTENSION.md](GENERATE
 
 ---
 
+## Exposure Gate — publication boundary, not a fourth destruction
+
+A survivor may become commercially valuable, security-sensitive, or directly reusable after public development has already begun. Public/private status therefore cannot be inherited forever from the repository's starting condition.
+
+```text
+PUBLIC ONCE != PUBLIC FOREVER
+PRIVATE ONCE != PRIVATE FOREVER
+```
+
+Run the Exposure Gate when monetization, external onboarding, Beta/production distribution, reusable proprietary assets, protected user assets, commercial control-plane logic, security-sensitive internals, or another material exposure change becomes real.
+
+The required Human Gate chooses:
+
+```text
+PUBLIC
+SPLIT
+PRIVATE
+```
+
+`SPLIT` means public showcase/evidence/specification value is deliberately preserved while the proprietary or commercial core moves behind a closed boundary.
+
+Hard boundaries:
+
+- `EXPOSURE GATE != FOURTH DESTRUCTION`;
+- `EXPOSURE WARNING != VISIBILITY MUTATION AUTHORITY`;
+- repository visibility and legal licensing are separate states;
+- changing to Private does not erase or deny prior public disclosure;
+- creating a private repo alone does not prove the split is complete;
+- WATCH may reopen the decision when the product, market, threat model, customer obligation, or licensing strategy materially changes.
+
+The detailed contract and DA / Counter-DA are defined in [EXPOSURE_GATE.md](EXPOSURE_GATE.md).
+
+---
+
 ## Post-deploy Debug / Reality Gate
 
 Build success or deployment completion does not prove runtime correctness.
@@ -320,11 +357,13 @@ No implementation gains a permanent right to exist.
 
 STABLE means stable-by-default, not ignored forever.
 
-WATCH observes material changes in models, libraries, APIs, algorithms, OSS, competitors, infrastructure, pricing, degradation/deprecation, vulnerabilities, shutdowns, and real-world evidence.
+WATCH observes material changes in models, libraries, APIs, algorithms, OSS, competitors, infrastructure, pricing, degradation/deprecation, vulnerabilities, shutdowns, real-world evidence, and exposure/commercial boundaries.
 
 The External Capability Feed is a replaceable supply path into WATCH. It may reduce discovery latency, but it does not replace periodic targeted challenger sweeps or create automatic replacement authority.
 
 A discovery is a candidate trigger, not automatic replacement authority.
+
+A material monetization, customer, threat-model, licensing, or proprietary-asset change may reopen the Exposure Gate without reopening METEOR or DARWIN unless implementation fitness or incumbency is also challenged.
 
 Doing nothing may be the correct result.
 
@@ -385,6 +424,6 @@ Every survivor inherits useful memory of the dead:
 
 ## Method invariant
 
-**Search current reality before claiming superiority. Keep a bounded, replaceable path for material external capability changes to reach discovery and challenger selection without granting that feed authority. Kill the need. Kill the implementation. Keep challenging the incumbent when reality changes. Verify deployed reality before calling it stable. Preserve recovery capability. Preserve the human-important outcome and the memory required to regenerate it. Observe material history when reconstructability matters, without allowing the observer to become unearned authority. Generate and replay destructive evidence when justified, bound destructive expansion, distinguish untested/blocked scope from convergence, and never let a generator, fault injector, model checker, observer, or external capability feed silently become promotion authority.**
+**Search current reality before claiming superiority. Keep a bounded, replaceable path for material external capability changes to reach discovery and challenger selection without granting that feed authority. Kill the need. Kill the implementation. Keep challenging the incumbent when reality changes. Re-evaluate the public/private boundary when commercial value, external distribution, proprietary assets, licensing, or threat reality materially changes; preserve public evidence when useful, but never let historical openness silently force future commercial-core disclosure. Verify deployed reality before calling it stable. Preserve recovery capability. Preserve the human-important outcome and the memory required to regenerate it. Observe material history when reconstructability matters, without allowing the observer to become unearned authority. Generate and replay destructive evidence when justified, bound destructive expansion, distinguish untested/blocked scope from convergence, and never let a generator, fault injector, model checker, observer, exposure warning, or external capability feed silently become promotion or mutation authority.**
 
 Historical canonical source: [RTS / thin-rts / ULTIMATE_LOOP_METHOD.md](https://github.com/nobutakayamauchi/RTS/blob/main/thin-rts/ULTIMATE_LOOP_METHOD.md)
