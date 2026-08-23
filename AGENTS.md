@@ -36,24 +36,27 @@ Use one parent Codex session as orchestrator/implementer. Spawn specialist subag
 - `counter-advocate` — attacks the DA findings and rescues only requirements/claims that survive the counter-case;
 - `reality-verifier` — independently checks repository/runtime/test/evidence claims and must not repair the thing it verifies.
 
+These project roles are discovered through the `.codex/config.toml` project config layer plus `.codex/agents/*.toml`. When spawning a named specialist, request the role explicitly through the runtime's role/agent-type field; a task name alone does not prove the custom role was applied.
+
 Specialist agents are advisory evidence sources. They do not own promotion authority. If the same result can be obtained with a simpler direct check, use the simpler path.
 
 ## Specialist independence protocol
 
-The custom specialist files request `sandbox_mode = "read-only"`, but do not treat that declaration alone as proof of immutability. Current Codex runtimes may reapply live parent permission/sandbox overrides to spawned agents.
+The specialist role files contain non-mutation instructions but intentionally do not rely on a role-local sandbox mode as the portability boundary. A runtime-specific sandbox may be unavailable or broken even when the role itself is valid.
 
 For any material DA / Counter-DA / Reality Verifier result where independence matters:
 
 1. finish parent writes before spawning the specialist;
 2. capture a repository/worktree baseline sufficient to detect mutation (for example status + diff/tree identity);
 3. do not allow concurrent parent or sibling writes while that specialist is evaluating the candidate;
-4. run the specialist under the narrowest available permission mode, preferably an explicitly read-only run when the client permits it;
-5. capture repository/worktree state again after the specialist returns;
-6. if the specialist caused a mutation, invalidate its verdict, classify the independence check as FAIL/UNKNOWN, restore or separately review the change, and re-run verification from a clean state.
+4. establish the narrowest proven technical write boundary available — for example a working read-only sandbox, or an OS-level read-only checkout under a non-privileged account;
+5. run the specialist only after that boundary is established;
+6. capture repository/worktree state again after the specialist returns;
+7. if the specialist caused a mutation, or technical non-mutation cannot be established for a material verdict, invalidate the verdict and classify the independence check as FAIL/UNKNOWN/BLOCKED as appropriate.
 
-`READ_ONLY REQUESTED != READ_ONLY PROVEN`.
+`PROMPT NON-MUTATION != TECHNICAL READ-ONLY`.
 
-When stronger technical separation is required, prefer a separate explicitly read-only Codex run/session over trusting prompt-only non-mutation.
+A clean before/after fingerprint is useful evidence of non-mutation, but it does not by itself prove the process lacked write capability. When material independence matters, bind the verdict to both enforcement evidence and observed state.
 
 ## Codex self-modification boundary
 
@@ -78,7 +81,7 @@ If Ultimate Loop concludes that its own skill or custom-agent configuration must
 - `PROTOTYPE AUTHORIZED != PROMOTION AUTHORIZED`.
 - `NEW != BETTER`.
 - `NOT_RUN != NOT_APPLICABLE`.
-- `READ_ONLY REQUESTED != READ_ONLY PROVEN`.
+- `PROMPT NON-MUTATION != TECHNICAL READ-ONLY`.
 
 A verifier must not silently mutate the candidate it is verifying. If a fix is needed, return the finding to the parent implementer, then verify the new state.
 
