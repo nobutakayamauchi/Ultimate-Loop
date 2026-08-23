@@ -34,7 +34,7 @@ run_audit() {
 }
 
 say "Installing/updating Codex inside the audit user's own HOME"
-if [ ! -x "$AUDIT_CODEX" ]; then
+if ! run_audit test -x "$AUDIT_CODEX"; then
   INSTALLER="$(mktemp)"
   curl -fsSL https://chatgpt.com/codex/install.sh -o "$INSTALLER"
   chmod a+r "$INSTALLER"
@@ -43,7 +43,7 @@ if [ ! -x "$AUDIT_CODEX" ]; then
   printf 'n\n' | run_audit sh "$INSTALLER"
   rm -f "$INSTALLER"
 fi
-[ -x "$AUDIT_CODEX" ] || fail "Audit-user Codex install did not create $AUDIT_CODEX"
+run_audit test -x "$AUDIT_CODEX" || fail "Audit-user Codex install did not create $AUDIT_CODEX"
 run_audit "$AUDIT_CODEX" --version
 
 say "Preparing fresh root-owned, read-only PR #6 checkout"
