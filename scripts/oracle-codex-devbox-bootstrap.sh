@@ -22,9 +22,11 @@ ${SUDO} apt-get update -y
 ${SUDO} apt-get install -y ca-certificates curl git
 
 say "Installing/updating Codex CLI from the official OpenAI installer"
-curl -fsSL https://chatgpt.com/codex/install.sh | sh
+# Force the official installer into non-interactive mode so it cannot stop the
+# bootstrap at uninstall/start-now prompts. The user-local standalone binary is
+# preferred explicitly below via PATH.
+curl -fsSL https://chatgpt.com/codex/install.sh | CODEX_NON_INTERACTIVE=1 sh
 
-# Current installer commonly uses ~/.local/bin; keep both common user-bin locations available.
 export PATH="${HOME}/.local/bin:${HOME}/bin:${PATH}"
 mkdir -p "${BIN_DIR}" "${DEV_ROOT}"
 
@@ -32,7 +34,6 @@ if ! command -v codex >/dev/null 2>&1; then
   fail "Codex installed but is not on PATH. Check the installer output, then add its bin directory to PATH."
 fi
 
-# Make the user-local paths survive future SSH sessions without duplicating lines.
 PROFILE_FILE="${HOME}/.profile"
 PATH_LINE='export PATH="$HOME/.local/bin:$HOME/bin:$PATH"'
 if ! grep -Fqx "$PATH_LINE" "$PROFILE_FILE" 2>/dev/null; then
@@ -69,7 +70,6 @@ set -euo pipefail
 
 REPO_DIR="${HOME}/dev/Ultimate-Loop"
 cd "${REPO_DIR}"
-
 export PATH="${HOME}/.local/bin:${HOME}/bin:${PATH}"
 
 if ! command -v codex >/dev/null 2>&1; then
@@ -143,8 +143,6 @@ echo
 printf '=== PRE DOGFOOD ===\nHEAD=%s\nFINGERPRINT=%s\n' "$PRE_HEAD" "$PRE_FP"
 echo
 
-# Run in an explicitly read-only sandbox. This command is intended to be invoked
-# directly from an interactive SSH/mobile terminal so Codex has a real TTY.
 codex exec --sandbox read-only --ephemeral "$PROMPT" 2>&1 | tee "$LOG"
 
 POST_HEAD="$(git rev-parse HEAD)"
