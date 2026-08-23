@@ -77,6 +77,8 @@ Rules:
 
 When parallel work is useful, split only independent workstreams. Avoid multiple agents editing the same state concurrently unless the merge boundary is explicit.
 
+If the surviving change targets `.agents/` or `.codex/` and the current Codex client protects those paths, treat the refusal as an explicit self-modification permission boundary. Do not jump to unrestricted permissions merely to continue. Use only a separately authorized write mechanism or explicit approval, then verify the newly loaded configuration in a fresh context when required.
+
 ## Phase 5 — Destruction and verification
 
 Run applicable tests and destructive/replay checks under explicit bounds.
@@ -87,7 +89,20 @@ Applicability: `REQUIRED / OPTIONAL / NOT_APPLICABLE / BLOCKED`
 
 Result: `PASS / FAIL / BOUND_EXHAUSTED / UNEXPLORED / UNKNOWN`
 
-Use `reality-verifier` for an independent read-only check of material completion claims. The verifier must report findings back to the parent; it must not fix its own findings.
+Use `reality-verifier` for an independent check of material completion claims. Its custom configuration requests `sandbox_mode = "read-only"`, but that request is not itself evidence that the spawned runtime was technically unable to write because live parent permission overrides may be inherited.
+
+For a material specialist verdict where independence matters:
+
+1. complete all parent writes first;
+2. capture a baseline repository/worktree state sufficient to detect changes;
+3. prohibit concurrent parent/sibling writes during specialist evaluation;
+4. use the narrowest available runtime permission, preferably an explicit read-only run/session when supported;
+5. capture repository/worktree state after the specialist returns;
+6. invalidate the specialist verdict if it mutated candidate state or if the mutation boundary cannot be established.
+
+`READ_ONLY REQUESTED != READ_ONLY PROVEN`
+
+A contaminated verifier result is not PASS. Return the finding to the parent implementer, restore/review the changed state, then verify again from a clean baseline.
 
 For deployed/runtime surfaces, establish deployment identity before treating probes as evidence. After a fix, re-establish identity and replay the exact failed probe plus regression checks.
 
