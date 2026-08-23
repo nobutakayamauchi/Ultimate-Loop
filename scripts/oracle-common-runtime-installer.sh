@@ -46,12 +46,16 @@ status(){
 smoke(){
   [ -x "$WRAPPER" ] || fail "Install the runtime before smoke testing"
   d="$(mktemp -d)"; trap 'rm -rf "$d"' RETURN
+  git -C "$d" init -q
   printf '# Ultimate Loop global runtime smoke\n' >"$d/README.md"
-  before="$(sha256sum "$d/README.md" | awk '{print $1}')"
+  before_hash="$(sha256sum "$d/README.md" | awk '{print $1}')"
+  before_status="$(git -C "$d" status --porcelain=v1 --untracked-files=all)"
   out="$(mktemp)"
-  (cd "$d" && "$WRAPPER" --goal 'Global runtime discovery smoke only. Do not edit files. This directory intentionally contains no project AGENTS.md, .agents, or .codex runtime adapter. Confirm that the global Ultimate Loop routing/skill is active, then sequentially spawn the custom roles with explicit agent_type values devils-advocate, counter-advocate, and reality-verifier using no inherited conversation fork. End exactly with GLOBAL_RUNTIME_PASS only if the skill is active and all three custom roles loaded; otherwise end with GLOBAL_RUNTIME_FAIL or GLOBAL_RUNTIME_BLOCKED and the smallest missing evidence.') | tee "$out"
-  after="$(sha256sum "$d/README.md" | awk '{print $1}')"
-  [ "$before" = "$after" ] || fail "Smoke repo mutated"
+  (cd "$d" && "$WRAPPER" --goal 'Global runtime discovery smoke only. Do not edit files. This is a fresh Git repository intentionally containing no project AGENTS.md, .agents, or .codex runtime adapter. Confirm that the global Ultimate Loop routing/skill is active, then sequentially spawn the custom roles with explicit agent_type values devils-advocate, counter-advocate, and reality-verifier using no inherited conversation fork. End exactly with GLOBAL_RUNTIME_PASS only if the skill is active and all three custom roles loaded; otherwise end with GLOBAL_RUNTIME_FAIL or GLOBAL_RUNTIME_BLOCKED and the smallest missing evidence.') | tee "$out"
+  after_hash="$(sha256sum "$d/README.md" | awk '{print $1}')"
+  after_status="$(git -C "$d" status --porcelain=v1 --untracked-files=all)"
+  [ "$before_hash" = "$after_hash" ] || fail "Smoke README mutated"
+  [ "$before_status" = "$after_status" ] || fail "Smoke worktree state changed"
   grep -Fxq 'GLOBAL_RUNTIME_PASS' "$out" || fail "Global runtime smoke did not return an exact GLOBAL_RUNTIME_PASS line"
   rm -f "$out"; echo SMOKE_PASS
 }
