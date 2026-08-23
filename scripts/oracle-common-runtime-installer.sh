@@ -43,13 +43,27 @@ status(){
   [ -x "$BIN/codex" ] && "$BIN/codex" --version || true
 }
 
+smoke(){
+  [ -x "$WRAPPER" ] || fail "Install the runtime before smoke testing"
+  d="$(mktemp -d)"; trap 'rm -rf "$d"' RETURN
+  printf '# Ultimate Loop global runtime smoke\n' >"$d/README.md"
+  before="$(sha256sum "$d/README.md" | awk '{print $1}')"
+  out="$(mktemp)"
+  (cd "$d" && "$WRAPPER" --goal 'Global runtime discovery smoke only. Do not edit files. This directory intentionally contains no project AGENTS.md, .agents, or .codex runtime adapter. Confirm that the global Ultimate Loop routing/skill is active, then sequentially spawn the custom roles with explicit agent_type values devils-advocate, counter-advocate, and reality-verifier using no inherited conversation fork. End exactly with GLOBAL_RUNTIME_PASS only if the skill is active and all three custom roles loaded; otherwise end with GLOBAL_RUNTIME_FAIL or GLOBAL_RUNTIME_BLOCKED and the smallest missing evidence.') | tee "$out"
+  after="$(sha256sum "$d/README.md" | awk '{print $1}')"
+  [ "$before" = "$after" ] || fail "Smoke repo mutated"
+  grep -q 'GLOBAL_RUNTIME_PASS' "$out" || fail "Global runtime smoke did not return GLOBAL_RUNTIME_PASS"
+  rm -f "$out"; echo SMOKE_PASS
+}
+
 if [ "$ACTION" = status ]; then status; exit 0; fi
+if [ "$ACTION" = smoke ]; then smoke; exit 0; fi
 if [ "$ACTION" = uninstall ]; then
   say "Removing managed Ultimate Loop runtime"
   rm -rf "$SKILL"; rm -f "$CH/agents/devils-advocate.toml" "$CH/agents/counter-advocate.toml" "$CH/agents/reality-verifier.toml" "$WRAPPER" "$MANIFEST"
   strip_block; echo UNINSTALL_PASS; exit 0
 fi
-[ "$ACTION" = install ] || fail "Usage: $0 [install|status|uninstall]"
+[ "$ACTION" = install ] || fail "Usage: $0 [install|status|smoke|uninstall]"
 
 say "Resolving pinned runtime identity"
 if [[ "$REF" =~ ^[0-9a-fA-F]{40}$ ]]; then SHA="$REF"; else
