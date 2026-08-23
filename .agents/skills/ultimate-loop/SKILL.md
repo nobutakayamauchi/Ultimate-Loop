@@ -46,7 +46,7 @@ Try, in order as applicable:
 
 Before adding a permanent agent, wrapper, watcher, adapter, control plane, database, daemon, or service, prove why a simpler holder cannot satisfy the same frozen requirements.
 
-For material architecture decisions, ask the `devils-advocate` subagent for the strongest case against the proposal. Then ask `counter-advocate` to attack those findings. The parent session adjudicates from evidence; subagents do not decide.
+For material architecture decisions, spawn the project role `devils-advocate` explicitly through the runtime's role/agent-type field and ask it for the strongest case against the proposal. Then spawn `counter-advocate` explicitly against those findings. A task name that merely resembles a role does not prove the custom role was applied. The parent session adjudicates from evidence; subagents do not decide.
 
 If the responsibility dies here, record the reason and stop building it.
 
@@ -89,20 +89,21 @@ Applicability: `REQUIRED / OPTIONAL / NOT_APPLICABLE / BLOCKED`
 
 Result: `PASS / FAIL / BOUND_EXHAUSTED / UNEXPLORED / UNKNOWN`
 
-Use `reality-verifier` for an independent check of material completion claims. Its custom configuration requests `sandbox_mode = "read-only"`, but that request is not itself evidence that the spawned runtime was technically unable to write because live parent permission overrides may be inherited.
+Use the project role `reality-verifier` explicitly for an independent check of material completion claims. The role's prompt-level non-mutation instruction is not evidence that the live process was technically unable to write.
 
 For a material specialist verdict where independence matters:
 
 1. complete all parent writes first;
 2. capture a baseline repository/worktree state sufficient to detect changes;
 3. prohibit concurrent parent/sibling writes during specialist evaluation;
-4. use the narrowest available runtime permission, preferably an explicit read-only run/session when supported;
-5. capture repository/worktree state after the specialist returns;
-6. invalidate the specialist verdict if it mutated candidate state or if the mutation boundary cannot be established.
+4. establish a proven technical write boundary — a functioning read-only sandbox, an OS-level read-only checkout under a non-privileged account, or equivalent enforcement;
+5. run the specialist only after that boundary is established;
+6. capture repository/worktree state after the specialist returns;
+7. invalidate the specialist verdict if state mutated or the technical boundary cannot be established.
 
-`READ_ONLY REQUESTED != READ_ONLY PROVEN`
+`PROMPT NON-MUTATION != TECHNICAL READ-ONLY`
 
-A contaminated verifier result is not PASS. Return the finding to the parent implementer, restore/review the changed state, then verify again from a clean baseline.
+A clean before/after fingerprint is useful evidence but does not alone prove the process lacked write capability. A contaminated or technically unbounded verifier result is not promotion evidence.
 
 For deployed/runtime surfaces, establish deployment identity before treating probes as evidence. After a fix, re-establish identity and replay the exact failed probe plus regression checks.
 
