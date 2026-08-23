@@ -1,0 +1,7 @@
+# Project-scoped Codex config layer.
+# Its existence makes `.codex/agents/*.toml` discoverable as project agent roles.
+# Keep runtime policy minimal; material non-mutation is enforced by the outer verification boundary.
+
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 4
