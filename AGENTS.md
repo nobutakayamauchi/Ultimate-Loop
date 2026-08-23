@@ -38,6 +38,36 @@ Use one parent Codex session as orchestrator/implementer. Spawn specialist subag
 
 Specialist agents are advisory evidence sources. They do not own promotion authority. If the same result can be obtained with a simpler direct check, use the simpler path.
 
+## Specialist independence protocol
+
+The custom specialist files request `sandbox_mode = "read-only"`, but do not treat that declaration alone as proof of immutability. Current Codex runtimes may reapply live parent permission/sandbox overrides to spawned agents.
+
+For any material DA / Counter-DA / Reality Verifier result where independence matters:
+
+1. finish parent writes before spawning the specialist;
+2. capture a repository/worktree baseline sufficient to detect mutation (for example status + diff/tree identity);
+3. do not allow concurrent parent or sibling writes while that specialist is evaluating the candidate;
+4. run the specialist under the narrowest available permission mode, preferably an explicitly read-only run when the client permits it;
+5. capture repository/worktree state again after the specialist returns;
+6. if the specialist caused a mutation, invalidate its verdict, classify the independence check as FAIL/UNKNOWN, restore or separately review the change, and re-run verification from a clean state.
+
+`READ_ONLY REQUESTED != READ_ONLY PROVEN`.
+
+When stronger technical separation is required, prefer a separate explicitly read-only Codex run/session over trusting prompt-only non-mutation.
+
+## Codex self-modification boundary
+
+Codex may protect `.agents/` and `.codex/` as read-only paths even when the surrounding workspace is writable. Treat this as a safety boundary, not a defect to bypass automatically.
+
+If Ultimate Loop concludes that its own skill or custom-agent configuration must change:
+
+- do not escalate to unrestricted permissions merely to keep the loop moving;
+- surface the protected-path/permission boundary explicitly;
+- use an already-authorized external write path, explicit approval, or another bounded mechanism;
+- after the configuration changes, start a fresh verification context when necessary before claiming the new configuration was actually loaded.
+
+`SELF-MODIFICATION DESIRED != SELF-MODIFICATION AUTHORIZED`.
+
 ## Hard authority boundaries
 
 - `CODEX != ULTIMATE LOOP`.
@@ -48,6 +78,7 @@ Specialist agents are advisory evidence sources. They do not own promotion autho
 - `PROTOTYPE AUTHORIZED != PROMOTION AUTHORIZED`.
 - `NEW != BETTER`.
 - `NOT_RUN != NOT_APPLICABLE`.
+- `READ_ONLY REQUESTED != READ_ONLY PROVEN`.
 
 A verifier must not silently mutate the candidate it is verifying. If a fix is needed, return the finding to the parent implementer, then verify the new state.
 
