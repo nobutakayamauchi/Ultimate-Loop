@@ -14,7 +14,7 @@ ACTION="${1:-install}"
 
 say(){ printf '\n==> %s\n' "$*"; }
 fail(){ printf '\nERROR: %s\n' "$*" >&2; exit 1; }
-for x in curl git sed awk mktemp install; do command -v "$x" >/dev/null || fail "$x is required"; done
+for x in curl git sed awk mktemp install sha256sum; do command -v "$x" >/dev/null || fail "$x is required"; done
 
 managed_block(){ cat <<'BLOCK'
 <!-- ULTIMATE_LOOP_RUNTIME_BEGIN -->
@@ -52,7 +52,7 @@ smoke(){
   (cd "$d" && "$WRAPPER" --goal 'Global runtime discovery smoke only. Do not edit files. This directory intentionally contains no project AGENTS.md, .agents, or .codex runtime adapter. Confirm that the global Ultimate Loop routing/skill is active, then sequentially spawn the custom roles with explicit agent_type values devils-advocate, counter-advocate, and reality-verifier using no inherited conversation fork. End exactly with GLOBAL_RUNTIME_PASS only if the skill is active and all three custom roles loaded; otherwise end with GLOBAL_RUNTIME_FAIL or GLOBAL_RUNTIME_BLOCKED and the smallest missing evidence.') | tee "$out"
   after="$(sha256sum "$d/README.md" | awk '{print $1}')"
   [ "$before" = "$after" ] || fail "Smoke repo mutated"
-  grep -q 'GLOBAL_RUNTIME_PASS' "$out" || fail "Global runtime smoke did not return GLOBAL_RUNTIME_PASS"
+  grep -Fxq 'GLOBAL_RUNTIME_PASS' "$out" || fail "Global runtime smoke did not return an exact GLOBAL_RUNTIME_PASS line"
   rm -f "$out"; echo SMOKE_PASS
 }
 
