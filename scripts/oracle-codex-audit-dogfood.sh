@@ -46,12 +46,23 @@ for required in \
   sudo test -f "${AUDIT_REPO}/${required}" || fail "Missing runtime adapter file: $required"
 done
 
-say "Preparing Codex authentication for the audit identity"
+say "Preparing Codex authentication and explicit project trust for the audit identity"
 sudo install -d -o "$AUDIT_USER" -g "$AUDIT_USER" -m 0700 "${AUDIT_HOME}/.codex"
 if [ -f "${HOME}/.codex/auth.json" ]; then
   sudo install -o "$AUDIT_USER" -g "$AUDIT_USER" -m 0600 \
     "${HOME}/.codex/auth.json" "${AUDIT_HOME}/.codex/auth.json"
 fi
+
+# Trust only this disposable audit checkout so its project `.codex/config.toml`
+# layer and `.codex/agents/*.toml` roles are eligible to load.
+AUDIT_USER_CONFIG="${AUDIT_HOME}/.codex/config.toml"
+TMP_CONFIG="$(mktemp)"
+cat > "$TMP_CONFIG" <<EOF
+[projects."${AUDIT_REPO}"]
+trust_level = "trusted"
+EOF
+sudo install -o "$AUDIT_USER" -g "$AUDIT_USER" -m 0600 "$TMP_CONFIG" "$AUDIT_USER_CONFIG"
+rm -f "$TMP_CONFIG"
 
 if ! sudo -u "$AUDIT_USER" -H env CODEX_HOME="${AUDIT_HOME}/.codex" "$AUDIT_CODEX" login status >/dev/null 2>&1; then
   echo
@@ -81,7 +92,7 @@ LOG="/tmp/ultimate-loop-audit-dogfood-${STAMP}.log"
 PROMPT=$(cat <<'PROMPT_EOF'
 /goal
 
-Run the second bounded runtime dogfood of PR #6. The repository is intentionally owned by root and mounted here as an OS-level read-only candidate for your non-privileged process. Do not attempt to change permissions, escalate privileges, edit files, install anything, commit, push, or repair findings.
+Run the second bounded runtime dogfood of PR #6. The repository is intentionally owned by root and exposed here as an OS-level read-only candidate for your non-privileged process. Do not attempt to change permissions, escalate privileges, edit files, install anything, commit, push, or repair findings.
 
 This run must distinguish runtime discovery from file existence.
 
