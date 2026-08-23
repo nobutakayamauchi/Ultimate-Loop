@@ -22,6 +22,17 @@ fi
 # The audit identity must never receive sudo authority.
 sudo gpasswd -d "$AUDIT_USER" sudo >/dev/null 2>&1 || true
 
+# Never inherit ubuntu's private home as cwd when switching identities.
+# Some Codex/installer helpers call find/getcwd and fail before doing useful work
+# when the audit user cannot traverse /home/ubuntu.
+run_audit() {
+  sudo -u "$AUDIT_USER" -H env \
+    HOME="$AUDIT_HOME" \
+    CODEX_HOME="${AUDIT_HOME}/.codex" \
+    PATH="${AUDIT_HOME}/.local/bin:/usr/local/bin:/usr/bin:/bin" \
+    bash -c 'cd "$HOME" && exec "$@"' bash "$@"
+}
+
 say "Installing/updating Codex inside the audit user's own HOME"
 if [ ! -x "$AUDIT_CODEX" ]; then
   INSTALLER="$(mktemp)"
@@ -29,11 +40,11 @@ if [ ! -x "$AUDIT_CODEX" ]; then
   chmod a+r "$INSTALLER"
   # Fresh audit users have no competing npm install. Feed the default-safe `n`
   # to the optional "Start Codex now?" prompt so the bootstrap continues.
-  printf 'n\n' | sudo -u "$AUDIT_USER" -H env HOME="$AUDIT_HOME" sh "$INSTALLER"
+  printf 'n\n' | run_audit sh "$INSTALLER"
   rm -f "$INSTALLER"
 fi
 [ -x "$AUDIT_CODEX" ] || fail "Audit-user Codex install did not create $AUDIT_CODEX"
-sudo -u "$AUDIT_USER" -H env HOME="$AUDIT_HOME" PATH="${AUDIT_HOME}/.local/bin:/usr/local/bin:/usr/bin:/bin" "$AUDIT_CODEX" --version
+run_audit "$AUDIT_CODEX" --version
 
 say "Preparing fresh root-owned, read-only PR #6 checkout"
 sudo rm -rf "$AUDIT_REPO"
@@ -69,17 +80,16 @@ EOF
 sudo install -o "$AUDIT_USER" -g "$AUDIT_USER" -m 0600 "$TMP_CONFIG" "$AUDIT_USER_CONFIG"
 rm -f "$TMP_CONFIG"
 
-AUDIT_ENV=(env HOME="$AUDIT_HOME" CODEX_HOME="${AUDIT_HOME}/.codex" PATH="${AUDIT_HOME}/.local/bin:/usr/local/bin:/usr/bin:/bin")
-if ! sudo -u "$AUDIT_USER" -H "${AUDIT_ENV[@]}" "$AUDIT_CODEX" login status >/dev/null 2>&1; then
+if ! run_audit "$AUDIT_CODEX" login status >/dev/null 2>&1; then
   echo
   echo "The isolated audit user needs Codex authentication."
   echo "Open the device-login URL on this phone and enter the one-time code."
   echo
-  sudo -u "$AUDIT_USER" -H "${AUDIT_ENV[@]}" "$AUDIT_CODEX" login --device-auth
+  run_audit "$AUDIT_CODEX" login --device-auth
 fi
 
 # Root ownership makes Git correctly suspicious; explicitly mark only this audit checkout safe.
-sudo -u "$AUDIT_USER" -H env HOME="$AUDIT_HOME" git config --global --replace-all safe.directory "$AUDIT_REPO"
+run_audit git config --global --replace-all safe.directory "$AUDIT_REPO"
 
 repo_fingerprint() {
   sudo find "$AUDIT_REPO" -type f -print0 \
@@ -129,8 +139,7 @@ printf 'AUDIT_USER=%s\nAUDIT_REPO=%s\nPRE_HEAD=%s\nPRE_FINGERPRINT=%s\n' \
   "$AUDIT_USER" "$AUDIT_REPO" "$PRE_HEAD" "$PRE_FP"
 
 # The Linux ownership boundary, not bwrap, is the technical write barrier.
-sudo -u "$AUDIT_USER" -H "${AUDIT_ENV[@]}" \
-  "$AUDIT_CODEX" exec --sandbox danger-full-access --ephemeral -C "$AUDIT_REPO" "$PROMPT" \
+run_audit "$AUDIT_CODEX" exec --sandbox danger-full-access --ephemeral -C "$AUDIT_REPO" "$PROMPT" \
   2>&1 | tee "$LOG"
 
 POST_HEAD="$(sudo git -C "$AUDIT_REPO" rev-parse HEAD)"
@@ -143,14 +152,14 @@ else
   echo "MUTATION_EVIDENCE=CONTAMINATED"
 fi
 
-if sudo -u "$AUDIT_USER" -H test -w "$AUDIT_REPO"; then
+if run_audit test -w "$AUDIT_REPO"; then
   echo "OS_WRITE_BOUNDARY=FAIL_REPO_DIR_WRITABLE"
 else
   echo "OS_WRITE_BOUNDARY=PASS_REPO_DIR_NOT_WRITABLE"
 fi
 
 PROBE="${AUDIT_REPO}/.ultimate-loop-write-probe"
-if sudo -u "$AUDIT_USER" -H sh -c "printf probe > '$PROBE'" 2>/dev/null; then
+if run_audit sh -c "printf probe > '$PROBE'" 2>/dev/null; then
   echo "OS_WRITE_PROBE=FAIL_WRITE_SUCCEEDED"
   sudo rm -f "$PROBE"
 else
