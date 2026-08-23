@@ -6,20 +6,14 @@ TARGET_BRANCH="codex/ultimate-loop-runtime-v0"
 AUDIT_USER="codex-audit"
 AUDIT_HOME="/home/${AUDIT_USER}"
 AUDIT_REPO="/srv/ultimate-loop-audit"
-AUDIT_CODEX="/usr/local/bin/codex-audit-runtime"
+AUDIT_CODEX="${AUDIT_HOME}/.local/bin/codex"
 
 say() { printf '\n==> %s\n' "$*"; }
 fail() { printf '\nERROR: %s\n' "$*" >&2; exit 1; }
 
 command -v sudo >/dev/null 2>&1 || fail "sudo is required for the OS-level audit boundary."
 command -v git >/dev/null 2>&1 || fail "git is required."
-command -v codex >/dev/null 2>&1 || fail "codex is not on PATH for the current user."
-
-CODEX_REAL="$(readlink -f "$(command -v codex)")"
-[ -x "$CODEX_REAL" ] || fail "Could not resolve the installed Codex executable."
-
-say "Installing a root-owned Codex runtime copy for the audit account"
-sudo install -o root -g root -m 0755 "$CODEX_REAL" "$AUDIT_CODEX"
+command -v curl >/dev/null 2>&1 || fail "curl is required."
 
 if ! id "$AUDIT_USER" >/dev/null 2>&1; then
   say "Creating non-privileged audit user"
@@ -27,6 +21,19 @@ if ! id "$AUDIT_USER" >/dev/null 2>&1; then
 fi
 # The audit identity must never receive sudo authority.
 sudo gpasswd -d "$AUDIT_USER" sudo >/dev/null 2>&1 || true
+
+say "Installing/updating Codex inside the audit user's own HOME"
+if [ ! -x "$AUDIT_CODEX" ]; then
+  INSTALLER="$(mktemp)"
+  curl -fsSL https://chatgpt.com/codex/install.sh -o "$INSTALLER"
+  chmod a+r "$INSTALLER"
+  # Fresh audit users have no competing npm install. Feed the default-safe `n`
+  # to the optional "Start Codex now?" prompt so the bootstrap continues.
+  printf 'n\n' | sudo -u "$AUDIT_USER" -H env HOME="$AUDIT_HOME" sh "$INSTALLER"
+  rm -f "$INSTALLER"
+fi
+[ -x "$AUDIT_CODEX" ] || fail "Audit-user Codex install did not create $AUDIT_CODEX"
+sudo -u "$AUDIT_USER" -H env HOME="$AUDIT_HOME" PATH="${AUDIT_HOME}/.local/bin:/usr/local/bin:/usr/bin:/bin" "$AUDIT_CODEX" --version
 
 say "Preparing fresh root-owned, read-only PR #6 checkout"
 sudo rm -rf "$AUDIT_REPO"
@@ -53,8 +60,6 @@ if [ -f "${HOME}/.codex/auth.json" ]; then
     "${HOME}/.codex/auth.json" "${AUDIT_HOME}/.codex/auth.json"
 fi
 
-# Trust only this disposable audit checkout so its project `.codex/config.toml`
-# layer and `.codex/agents/*.toml` roles are eligible to load.
 AUDIT_USER_CONFIG="${AUDIT_HOME}/.codex/config.toml"
 TMP_CONFIG="$(mktemp)"
 cat > "$TMP_CONFIG" <<EOF
@@ -64,17 +69,17 @@ EOF
 sudo install -o "$AUDIT_USER" -g "$AUDIT_USER" -m 0600 "$TMP_CONFIG" "$AUDIT_USER_CONFIG"
 rm -f "$TMP_CONFIG"
 
-if ! sudo -u "$AUDIT_USER" -H env CODEX_HOME="${AUDIT_HOME}/.codex" "$AUDIT_CODEX" login status >/dev/null 2>&1; then
+AUDIT_ENV=(env HOME="$AUDIT_HOME" CODEX_HOME="${AUDIT_HOME}/.codex" PATH="${AUDIT_HOME}/.local/bin:/usr/local/bin:/usr/bin:/bin")
+if ! sudo -u "$AUDIT_USER" -H "${AUDIT_ENV[@]}" "$AUDIT_CODEX" login status >/dev/null 2>&1; then
   echo
   echo "The isolated audit user needs Codex authentication."
   echo "Open the device-login URL on this phone and enter the one-time code."
   echo
-  sudo -u "$AUDIT_USER" -H env CODEX_HOME="${AUDIT_HOME}/.codex" "$AUDIT_CODEX" login --device-auth
+  sudo -u "$AUDIT_USER" -H "${AUDIT_ENV[@]}" "$AUDIT_CODEX" login --device-auth
 fi
 
-# Root ownership makes Git correctly suspicious; explicitly mark only this audit checkout safe
-# for the non-privileged audit identity.
-sudo -u "$AUDIT_USER" -H git config --global --replace-all safe.directory "$AUDIT_REPO"
+# Root ownership makes Git correctly suspicious; explicitly mark only this audit checkout safe.
+sudo -u "$AUDIT_USER" -H env HOME="$AUDIT_HOME" git config --global --replace-all safe.directory "$AUDIT_REPO"
 
 repo_fingerprint() {
   sudo find "$AUDIT_REPO" -type f -print0 \
@@ -98,14 +103,14 @@ This run must distinguish runtime discovery from file existence.
 
 1. Report whether root `AGENTS.md` materially governs this session.
 2. Report whether the repository skill `ultimate-loop` is discovered/available and whether this `/goal` request routed into it.
-3. Test the project custom roles explicitly. For each spawn, use the runtime role field `agent_type` exactly as follows and use `fork_turns="none"` to avoid inherited-thread fork noise:
+3. Test the project custom roles explicitly. For each spawn, use the runtime role field `agent_type` exactly as follows and use `fork_turns="none"`:
    - `agent_type="devils-advocate"`, task_name `runtime_da`
    - `agent_type="counter-advocate"`, task_name `runtime_counter_da`
    - `agent_type="reality-verifier"`, task_name `runtime_reality_verifier`
    A matching task_name without `agent_type` is NOT evidence that the custom role loaded.
 4. Give Devil's Advocate the claim `PR #6 is runtime-ready`; give Counter-Advocate the actual DA findings; give Reality Verifier the reconciled evidence. Run them sequentially, not concurrently.
 5. Treat a successful spawn with the named `agent_type` as role-discovery evidence. Preserve the exact runtime error if a role is unknown or malformed.
-6. The process-level Codex sandbox is intentionally not the write boundary in this Oracle run. The outer OS account has no sudo authority and the candidate checkout is root-owned/read-only. Report any inability to execute ordinary read-only commands separately from custom-role discovery.
+6. The Codex/bwrap sandbox is intentionally not the write boundary in this Oracle run. The outer OS account has no sudo authority and the candidate checkout is root-owned/read-only.
 7. Preserve UNKNOWN/BLOCKED rather than inferring success.
 
 Hard distinctions:
@@ -123,10 +128,8 @@ say "Starting OS-isolated Codex runtime dogfood"
 printf 'AUDIT_USER=%s\nAUDIT_REPO=%s\nPRE_HEAD=%s\nPRE_FINGERPRINT=%s\n' \
   "$AUDIT_USER" "$AUDIT_REPO" "$PRE_HEAD" "$PRE_FP"
 
-# No Codex/bwrap sandbox here: the Linux ownership boundary is the technical write barrier.
-# The audit user cannot mutate the root-owned checkout or use sudo.
-sudo -u "$AUDIT_USER" -H env \
-  CODEX_HOME="${AUDIT_HOME}/.codex" \
+# The Linux ownership boundary, not bwrap, is the technical write barrier.
+sudo -u "$AUDIT_USER" -H "${AUDIT_ENV[@]}" \
   "$AUDIT_CODEX" exec --sandbox danger-full-access --ephemeral -C "$AUDIT_REPO" "$PROMPT" \
   2>&1 | tee "$LOG"
 
