@@ -1,7 +1,7 @@
 # Codex-native Ultimate Loop Runtime — DA / Counter-DA / Dogfood
 
 Date: 2026-08-23
-Status: `PROVISIONAL / IMPLEMENTED ON BRANCH / DOGFOOD_PASS_1 / CODEX_RUNTIME_EXECUTION_PENDING`
+Status: `PROVISIONAL / IMPLEMENTED ON BRANCH / DOGFOOD_PASS_2 / RUNTIME_BLOCKED_ENVIRONMENT`
 
 ## Frozen subject
 
@@ -144,6 +144,18 @@ Mitigation: runtime promotion evidence must come from a current Codex environmen
 
 Result: survives with explicit evidence boundary.
 
+### DA-8 — GitHub trigger can exist while repo runtime does not
+
+Risk: successful GitHub connection is mistaken for a runnable Codex environment.
+
+Dogfood observation: PR #6 accepted an `@codex` task mention and the Codex connector responded, but it did not start the task. The connector explicitly reported that a Codex Cloud environment must first be created for this repository.
+
+Invariant:
+
+`CODEX GITHUB CONNECTED != CODEX REPO ENVIRONMENT READY`
+
+Result: runtime promotion is BLOCKED, not failed.
+
 ## Counter-DA
 
 The strongest counter-case is that even three specialists may be unnecessary because a frontier parent model can self-critique.
@@ -160,7 +172,7 @@ not:
 
 `EVERY TASK -> THREE SUBAGENTS`.
 
-## Dogfood pass 1 — result
+## Dogfood pass 1 — repository/spec result
 
 This branch was reviewed against current official Codex behavior before merge.
 
@@ -169,9 +181,9 @@ Observed result:
 - `AGENTS.md` placement/role: compatible with current Codex documentation;
 - `.agents/skills/ultimate-loop/SKILL.md`: compatible with documented repository-skill location and metadata shape;
 - `.codex/agents/*.toml`: compatible with documented project custom-agent location and required fields;
+- all three custom-agent TOML files parse successfully and retain the required fields plus `sandbox_mode = "read-only"`;
 - configured read-only specialist assumption: **finding opened and fixed** because live parent permission overrides can weaken the technical guarantee;
-- self-modification path: **finding opened and bounded** because `.agents/` and `.codex/` may be protected paths;
-- actual Codex custom-agent discovery/spawn and end-to-end local execution: **NOT RUN in this evidence context**.
+- self-modification path: **finding opened and bounded** because `.agents/` and `.codex/` may be protected paths.
 
 Changes made from dogfood pass 1:
 
@@ -181,18 +193,37 @@ Changes made from dogfood pass 1:
 4. hardened all three specialist prompts not to edit even if write capability is inherited;
 5. kept PR #6 Draft because repository/spec compatibility is not runtime validation.
 
+## Dogfood pass 2 — real Codex Cloud trigger
+
+A real Codex task was requested from PR #6 with an `@codex` comment. The task explicitly requested no mutation and asked Codex to report AGENTS/skill/custom-agent discovery plus the effective sandbox behavior.
+
+Observed source evidence from `chatgpt-codex-connector[bot]`:
+
+> To use Codex here, create an environment for this repo.
+
+Interpretation:
+
+- GitHub -> Codex connector path exists and responded;
+- the actual Codex task did not start;
+- therefore AGENTS/skill/custom-agent discovery is still unobserved;
+- this is `RUNTIME_BLOCKED_ENVIRONMENT`, not `RUNTIME_FAIL`;
+- no merge/promotion is authorized from this evidence.
+
+The smallest next evidence is creation of a Codex Cloud environment for `nobutakayamauchi/Ultimate-Loop`, then replay of the same bounded `@codex` task on PR #6.
+
 ## Promotion boundary
 
 Still required before calling the adapter `RUNTIME_VALIDATED`:
 
-1. open this branch in a current Codex desktop/CLI/IDE environment;
-2. confirm `AGENTS.md` is loaded;
-3. confirm the `ultimate-loop` skill is discovered and can be invoked/routed from a `/goal` prompt;
-4. confirm all three custom agents are discovered by name;
-5. record the effective permission mode used for each material specialist run;
-6. prove non-mutation with pre/post state around a specialist verification window, rather than trusting config text alone;
-7. execute one bounded end-to-end dogfood task through parent -> DA -> Counter-DA -> implementation -> Reality Verifier;
-8. preserve any failure/UNKNOWN and patch only material problems.
+1. create/attach a Codex Cloud environment for this repository, or run the branch in a current Codex desktop/CLI/IDE environment;
+2. replay the bounded dogfood task;
+3. confirm `AGENTS.md` is loaded;
+4. confirm the `ultimate-loop` skill is discovered and can be invoked/routed from a `/goal` prompt;
+5. confirm all three custom agents are discovered by name on a surface that supports project custom agents;
+6. record the effective permission mode used for each material specialist run;
+7. prove non-mutation with pre/post state around a specialist verification window, rather than trusting config text alone;
+8. execute one bounded end-to-end dogfood task through parent -> DA -> Counter-DA -> implementation -> Reality Verifier;
+9. preserve any failure/UNKNOWN and patch only material problems.
 
 A CI-based Codex run is also possible, but the official Codex GitHub Action requires an OpenAI API key stored as a GitHub secret. Do not add a permanent CI harness merely to perform a one-off proof unless repeated CI verification becomes a real requirement.
 
@@ -202,4 +233,4 @@ Until the runtime evidence above exists:
 
 ## Decision
 
-Keep Candidate C as the smallest surviving Codex-native v0 challenger. Dogfood pass 1 improved the adapter and exposed a real independence flaw. Do not merge PR #6 yet; the remaining blocker is actual Codex runtime evidence, not another repository design task.
+Keep Candidate C as the smallest surviving Codex-native v0 challenger. Dogfood pass 1 fixed a real independence flaw. Dogfood pass 2 reached the real Codex connector and identified the next hard boundary: the repository has no runnable Codex Cloud environment attached. Keep PR #6 Draft and do not merge until that environment/runtime evidence exists.
