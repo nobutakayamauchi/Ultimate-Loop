@@ -10,7 +10,8 @@ Before making a material design or implementation decision, read only the docume
 2. `SUPERSESSION_RULE.md` — which artifact wins when guidance conflicts.
 3. `TRACE_OBSERVATION_LAYER.md` — evidence/observation boundary when reconstructability matters.
 4. `EXPOSURE_GATE.md` — required when external distribution, monetization, protected assets, or security-sensitive internals become material.
-5. `LINEAGE.md` — continuity and predecessor memory when replacement/reconstruction is material.
+5. `SECURITY_RELEASE_GATE.md` — required when an untrusted/internet-reachable surface, protected data, privileged secrets/tools, AI agency, or externally triggerable paid/scarce operations become material.
+6. `LINEAGE.md` — continuity and predecessor memory when replacement/reconstruction is material.
 
 Load extension documents only when their gate is actually applicable. Do not read every historical DA file by default.
 
@@ -39,6 +40,8 @@ Use one parent Codex session as orchestrator/implementer. Spawn specialist subag
 These project roles are discovered through the `.codex/config.toml` project config layer plus `.codex/agents/*.toml`. When spawning a named specialist, request the role explicitly through the runtime's role/agent-type field; a task name alone does not prove the custom role was applied.
 
 Specialist agents are advisory evidence sources. They do not own promotion authority. If the same result can be obtained with a simpler direct check, use the simpler path.
+
+For a material Security Release Gate, reuse these existing roles before adding a permanent security specialist: give the DA a security-focused trust-boundary/abuse brief and use the Reality Verifier to check the resulting evidence and exact candidate identity. A separate model name alone does not prove meaningful independence.
 
 ## Specialist independence protocol
 
@@ -82,6 +85,9 @@ If Ultimate Loop concludes that its own skill or custom-agent configuration must
 - `NEW != BETTER`.
 - `NOT_RUN != NOT_APPLICABLE`.
 - `PROMPT NON-MUTATION != TECHNICAL READ-ONLY`.
+- `WORKS != SAFE_TO_EXPOSE`.
+- `TOOL_RETURNED_ZERO != CONTROL_PROVEN`.
+- `OLD_SECURITY_PASS != CURRENT_CANDIDATE_PASS`.
 
 A verifier must not silently mutate the candidate it is verifying. If a fix is needed, return the finding to the parent implementer, then verify the new state.
 
@@ -105,6 +111,8 @@ Separate:
 
 If current external superiority is claimed, refresh current official/external evidence first. A stale capability feed cannot prove current absence of challengers.
 
+For a material security-release claim, bind findings to the exact commit/revision/artifact/configuration/tool-permission/deployment candidate being released. Scanner output, a security prompt, or an older candidate's clean result is scoped evidence only, never a transferable security certificate.
+
 ## Change discipline
 
 Before adding a permanent file, agent, watcher, service, control plane, or abstraction, ask whether an existing simpler holder, ordinary tool, composition, bounded manual step, or small glue satisfies the same frozen requirements.
@@ -112,7 +120,7 @@ Before adding a permanent file, agent, watcher, service, control plane, or abstr
 When editing the canonical method:
 
 1. preserve the three destructions (Raison d’être, METEOR, DARWIN);
-2. do not accidentally create a fourth loop from an observation, exposure, or automation layer;
+2. do not accidentally create a fourth loop from an observation, exposure, security-release, or automation layer;
 3. keep implementations/providers replaceable;
 4. preserve PHOENIX/LINEAGE reconstruction obligations;
 5. update canonical docs only when the new rule actually survives DA + Counter-DA and current evidence.
@@ -127,4 +135,6 @@ At the end of a `/goal` run, report compactly:
 4. remaining `UNKNOWN` / blocked Human Gate / external boundary;
 5. next material trigger, if any.
 
-Do not report “complete” when required reality evidence is still missing.
+When a Security Release Gate was applicable, include its outcome and any explicit residual-risk Human Gate in the same report.
+
+Do not report “complete” when required reality or security-release evidence is still missing.
