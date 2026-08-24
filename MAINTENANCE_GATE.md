@@ -20,6 +20,7 @@ PAYMENT_COMPLETED != SPEND_AUTHORITY
 HUMAN_AUTHORIZATION != PROMOTION_AUTHORITY
 REPAIR_COMPLETE != REALITY_VERIFIED
 LOOP_MAY_INSPECT_ITSELF != LOOP_MAY_SELF_PROMOTE
+CANDIDATE_WORKFLOW != TRUSTED_SELF_ATTESTATION
 FAILED_PAID_ATTEMPT != PERMISSION_TO_RETRY
 BUDGET_EXHAUSTED != PERMISSION_TO_RECHARGE
 OLD_MAINTENANCE_PASS != CURRENT_CANDIDATE_PASS
@@ -73,7 +74,32 @@ DETECTOR != REPAIRER != VERIFIER
 
 A WATCH implementation should not receive the paid-provider secret merely so it can decide whether paid maintenance might be useful.
 
-## 4. Recommendation states
+## 4. Trusted WATCH boundary
+
+A candidate that changes Ultimate Loop must not be allowed to execute its own modified WATCH logic with privileged notification authority and then cite that result as trusted evidence.
+
+For the current GitHub V1 implementation, pull-request detection therefore runs from the **trusted base/default-branch workflow context** and inspects candidate metadata without checking out or executing candidate code.
+
+Preferred GitHub pattern:
+
+```text
+pull_request_target
+-> workflow definition from trusted base branch
+-> read PR base/head identity + changed-file metadata through GitHub API
+-> DO NOT checkout candidate
+-> DO NOT source candidate scripts
+-> DO NOT execute candidate Actions/code
+-> create/update maintenance record only
+```
+
+This pattern must remain narrowly scoped because `pull_request_target` can carry privileged repository authority. The WATCH job may inspect metadata and write its notification record, but must not execute untrusted candidate content.
+
+```text
+CANDIDATE_CAN_CHANGE_WATCH != CANDIDATE_CAN_ATTEST_ITS_OWN_WATCH
+PRIVILEGED_WATCH != PERMISSION_TO_EXECUTE_CANDIDATE_CODE
+```
+
+## 5. Recommendation states
 
 Every maintenance candidate is classified as exactly one of:
 
@@ -86,7 +112,7 @@ BLOCKED_UNKNOWN
 
 Anything except `WATCH_ONLY` creates or updates a human-visible maintenance record.
 
-## 5. Notification packet
+## 6. Notification packet
 
 The notification record must contain at least:
 
@@ -113,7 +139,7 @@ GitHub Issue + ordinary GitHub notification/email is the preferred V1 transport 
 
 `EMAIL_SENT != EMAIL_DELIVERED != HUMAN_READ != HUMAN_AUTHORIZATION`.
 
-## 6. Human authorization envelope
+## 7. Human authorization envelope
 
 Authorization must bind to:
 
@@ -141,7 +167,7 @@ The USD 5 amount, model name, and reasoning effort are replaceable operating-pro
 
 Payment is a resource condition, not an authority condition. Funding the API account or project alone never starts maintenance.
 
-## 7. Technical spend boundary
+## 8. Technical spend boundary
 
 A workflow-level intent such as `max_budget_usd=5` is not itself proof of a USD 5 hard cap.
 
@@ -156,20 +182,22 @@ If the provider hard-cap behavior is unavailable, stale, soft-only, or unverifie
 
 `DASHBOARD_BUDGET != PROVEN_HARD_CAP`.
 
-## 8. V1 technical split
+## 9. V1 technical split
 
 ### `maintenance-watch`
 
 - automatic on material method/control changes and optionally scheduled as a cheap backstop;
+- on pull requests, executes from a trusted base/default-branch context rather than the candidate workflow;
+- does not checkout or execute candidate content in the privileged notification job;
 - no OpenAI/API paid secret;
 - no paid runtime invocation;
-- read-only repository access except a narrowly scoped notification-record write;
+- read-only repository/PR metadata access except a narrowly scoped notification-record write;
 - deterministic/current evidence only;
 - creates/updates a maintenance notification record.
 
 ### `maintenance-paid`
 
-- `workflow_dispatch` only;
+- `workflow_dispatch` only in normal operation;
 - exact candidate SHA required;
 - explicit typed human authorization required;
 - protected GitHub Environment recommended and required before relying on environment-secret isolation;
@@ -182,7 +210,46 @@ If the provider hard-cap behavior is unavailable, stale, soft-only, or unverifie
 
 GitHub Environment approval is an additional technical belt. Manual dispatch plus the exact authorization contract remains required even when an Environment is configured.
 
-## 9. Paid maintenance sequence
+## 10. First-install bootstrap boundary
+
+The current GitHub implementation has a real bootstrap constraint: `workflow_dispatch` only receives manual-dispatch events when the workflow file exists on the repository's default branch. A newly introduced `maintenance-paid` workflow therefore cannot prove its own pre-merge manual Runtime path merely by existing on a feature branch.
+
+Do not hide this as a PASS. The first installation has a distinct state:
+
+```text
+BOOTSTRAP_CANDIDATE
+-> DESIGN / STATIC / INDEPENDENT REVIEW
+-> HUMAN DECISION TO INSTALL DORMANT CONTROL PLANE
+-> MERGE/INSTALL ON DEFAULT BRANCH
+-> BOOTSTRAP_INSTALLED_NOT_RUNTIME_VERIFIED
+-> TRUSTED MAIN PUSH WATCH CREATES EXACT MAINTENANCE PACKET
+-> HUMAN CONFIGURES/CONFIRMS SPEND BOUNDARY + AUTHORIZES EXACT INSTALLED CANDIDATE
+-> DEFAULT-BRANCH maintenance-paid DISPATCH
+-> DA -> COUNTER-DA -> INDEPENDENT REALITY VERIFIER
+-> MAINTENANCE_PASS => ACTIVE
+-> FAIL/BLOCKED => REVERT OR NEW CANDIDATE; NOT ACTIVE
+```
+
+The bootstrap merge/install is **not** a maintenance PASS and must never be represented as one.
+
+Before a dormant bootstrap install is allowed:
+
+- the paid workflow must have no automatic paid trigger;
+- WATCH and paid secrets must remain separated;
+- no payment/account credit may trigger execution;
+- the candidate must have survived design/static and independent review available before install;
+- the human must explicitly accept that Runtime verification is deferred until the workflow exists on default branch;
+- paid/self-maintenance promotion authority remains blocked until post-install exact-candidate Reality PASS;
+- a failed post-install verification requires revert or a new candidate rather than silent continued activation.
+
+```text
+BOOTSTRAP_INSTALLED != RUNTIME_VERIFIED
+BOOTSTRAP_INSTALLED != ACTIVE
+```
+
+This is a one-time/rare provider-hosting bootstrap exception, not a general excuse to merge unverified method changes.
+
+## 11. Paid maintenance sequence
 
 Paid maintenance reuses the existing Ultimate Loop:
 
@@ -212,7 +279,7 @@ MAINTENANCE_EVIDENCE_STALE
 
 No failure verdict authorizes a retry.
 
-## 10. Retry rule
+## 12. Retry rule
 
 ```text
 PAID_ATTEMPT_FAIL
@@ -229,7 +296,7 @@ Never silently enter:
 FAIL -> FIX -> RETRY -> FIX -> RETRY
 ```
 
-## 11. Candidate identity and pass lineage
+## 13. Candidate identity and pass lineage
 
 Authorization and PASS bind to the exact method candidate. Record repository, base SHA, candidate SHA, tree/equivalent identity, workflow/config identity, runtime/model identity, permission profile, authorization ID, budget envelope, and verifier output.
 
@@ -239,7 +306,7 @@ Any material method-affecting change after PASS invalidates transfer:
 
 Cleanup-only changes require an explicit lineage rule; no silent PASS transfer.
 
-## 12. Periodic backstop
+## 14. Periodic backstop
 
 Event-driven maintenance is primary. A periodic health check may exist only as a cheap/free stale-state detector.
 
@@ -248,7 +315,7 @@ PERIODIC_CHECK -> DETECT / NOTIFY ONLY
 PERIODIC_CHECK != PAID_MAINTENANCE_AUTHORITY
 ```
 
-## 13. Provider independence
+## 15. Provider independence
 
 OpenAI/Codex/GitHub are the current V1 implementation profile, not permanent method dependencies. Provider billing alerts are a second safety belt and never substitute for the maintenance detector or human authorization.
 
@@ -256,7 +323,9 @@ OpenAI/Codex/GitHub are the current V1 implementation profile, not permanent met
 OPENAI_BUDGET_ALERT != ULTIMATE_LOOP_MAINTENANCE_SIGNAL
 ```
 
-## 14. Human-facing rule
+Provider-specific bootstrap constraints must remain explicit and replaceable; they do not become permanent Ultimate Loop semantics.
+
+## 16. Human-facing rule
 
 > **Ultimate Loop may notice that it needs maintenance. It may ask. It may not take the wallet.**
 >
