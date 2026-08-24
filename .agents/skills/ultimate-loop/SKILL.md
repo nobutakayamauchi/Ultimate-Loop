@@ -1,6 +1,6 @@
 ---
 name: ultimate-loop
-description: Run the repository's Ultimate Loop end-to-end for /goal requests: freeze the workload, refresh current reality, destroy unnecessary work, challenge the surviving design, implement the smallest survivor, verify reality, and preserve evidence/lineage without inventing success.
+description: Run the repository's Ultimate Loop end-to-end for /goal requests: freeze the workload, refresh current reality, destroy unnecessary work, challenge the surviving design, implement the smallest survivor, verify reality, gate material external exposure/security, and preserve evidence/lineage without inventing success.
 ---
 
 # Ultimate Loop
@@ -23,6 +23,7 @@ Write down, in the working notes or visible response, the minimum frozen contrac
 - success evidence;
 - authority and destructive-action limits;
 - exposure/privacy constraints;
+- untrusted/external surface and protected assets when material;
 - runtime/equivalent verification boundary;
 - cost/time/tool bounds when material.
 
@@ -113,7 +114,46 @@ If monetization, external onboarding, production/Beta distribution, proprietary 
 
 Do not mutate repository visibility merely because a warning exists. `PUBLIC / SPLIT / PRIVATE` is a Human Gate unless explicit authority already exists.
 
-## Phase 7 — Evidence, TRACE, lineage
+## Phase 7 — Security release boundary
+
+If the survivor becomes internet-reachable or otherwise accepts untrusted actors/input, touches protected data, uses privileged secrets/tools, gives an AI/agent authority over protected side effects, or exposes externally triggerable paid/scarce operations, run `SECURITY_RELEASE_GATE.md` before representing the candidate as release-ready.
+
+Classify the eight control families independently:
+
+1. authorization and isolation;
+2. secrets and credentials;
+3. dependencies and supply chain;
+4. untrusted input / injection / unsafe output handling;
+5. AI prompt injection / agency boundary;
+6. abuse / rate / cost / resource bounds;
+7. security logging / incident reconstruction;
+8. vulnerability freshness / response path.
+
+For each family record applicability (`REQUIRED / OPTIONAL / NOT_APPLICABLE / BLOCKED`) and evidence result (`PASS / FAIL / UNKNOWN / UNEXPLORED`).
+
+Do not promote a REQUIRED `UNKNOWN`, `UNEXPLORED`, or `BLOCKED` control to pass by inference. The gate outcome is one of:
+
+`SECURITY_RELEASE_READY / SECURITY_RELEASE_BLOCKED / EXPLICIT_RISK_ACCEPTANCE_REQUIRED`
+
+Explicit risk acceptance is a Human Gate. It must identify the exact residual risk, affected surface/assets, mitigation, disable/rollback/revoke path, and review trigger.
+
+Bind security evidence to the exact release candidate. A scanner result, AI security prompt, or old SHA/configuration is scoped evidence only.
+
+Reuse the existing `devils-advocate` and `reality-verifier` roles for security-focused adversarial review before inventing a permanent new security-agent role.
+
+Hard reminders:
+
+`WORKS != SAFE_TO_EXPOSE`
+
+`AUTHENTICATED != AUTHORIZED`
+
+`TOOL_RETURNED_ZERO != CONTROL_PROVEN`
+
+`SYSTEM_PROMPT != SECURITY_BOUNDARY`
+
+`OLD_SECURITY_PASS != CURRENT_CANDIDATE_PASS`
+
+## Phase 8 — Evidence, TRACE, lineage
 
 Preserve material transitions when useful:
 
@@ -122,6 +162,7 @@ Preserve material transitions when useful:
 - DA and Counter-DA outcomes;
 - invariants/tests added;
 - changes/commits/PRs;
+- security-release applicability/results and Human risk acceptance when applicable;
 - deployment identity and runtime probes;
 - human decisions/overrides;
 - UNKNOWN/CONFLICT/external-evidence boundaries.
@@ -130,7 +171,7 @@ Do not claim hidden chain-of-thought as evidence. TRACE is an observer, never go
 
 If a promoted occupant replaces another, preserve enough predecessor/failure/recovery memory for LINEAGE/PHOENIX continuity.
 
-## Phase 8 — Finish or reopen
+## Phase 9 — Finish or reopen
 
 A run may finish when the current bounded goal has a surviving occupant and all required evidence is satisfied, or when the correct result is DROP/KEEP/blocked Human Gate/explicit UNKNOWN.
 
@@ -139,6 +180,7 @@ Report:
 - survivor / decision;
 - implementation changes;
 - verification evidence;
+- Security Release Gate outcome when applicable;
 - unresolved UNKNOWN/CONFLICT or blocked gate;
 - next material trigger for WATCH/DARWIN.
 

@@ -1,0 +1,162 @@
+name: Security Release Gate runtime dogfood
+
+on:
+  push:
+    branches:
+      - feature/security-release-gate-20260825
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'SECURITY_RELEASE_GATE.md'
+      - 'METHOD.md'
+      - 'AGENTS.md'
+      - '.agents/skills/ultimate-loop/SKILL.md'
+      - '.github/workflows/security-release-gate-runtime-dogfood.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  runtime-dogfood:
+    # Temporary candidate-only harness. If this file ever lands on main, unrelated
+    # PRs must not invoke the paid Codex action or create permanent review bureaucracy.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'push' ||
+      github.head_ref == 'feature/security-release-gate-20260825'
+    runs-on: ubuntu-latest
+    outputs:
+      final_message: ${{ steps.codex.outputs.final-message }}
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Record candidate identity before Codex
+        shell: bash
+        run: |
+          set -euo pipefail
+          head_sha="$(git rev-parse HEAD)"
+          tree_sha="$(git rev-parse HEAD^{tree})"
+          echo "DOGFOOD_HEAD=$head_sha"
+          echo "DOGFOOD_TREE=$tree_sha"
+          echo "DOGFOOD_EXPECTED_HEAD=$head_sha" >> "$GITHUB_ENV"
+          echo "DOGFOOD_EXPECTED_TREE=$tree_sha" >> "$GITHUB_ENV"
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+          grep -q '^name: ultimate-loop$' .agents/skills/ultimate-loop/SKILL.md
+          grep -q 'SECURITY_RELEASE_GATE.md' .agents/skills/ultimate-loop/SKILL.md
+          grep -q 'Security Release Gate' METHOD.md
+
+      - name: Run updated /goal with independent Reality Verifier
+        id: codex
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          permission-profile: ":read-only"
+          safety-strategy: drop-sudo
+          effort: high
+          output-schema: |
+            {
+              "type": "object",
+              "properties": {
+                "skill_security_gate_loaded": {"type": "string", "enum": ["PASS", "FAIL", "BLOCKED"]},
+                "devils_counter_sequence": {"type": "string", "enum": ["PASS", "FAIL", "BLOCKED"]},
+                "reality_verifier": {"type": "string", "enum": ["PASS", "FAIL", "BLOCKED"]},
+                "technical_non_mutation": {"type": "string", "enum": ["READ_ONLY_PROFILE", "FAIL", "BLOCKED"]},
+                "ultimate_loop_runtime_dogfood": {"type": "string", "enum": ["PASS", "FAIL", "BLOCKED"]}
+              },
+              "required": [
+                "skill_security_gate_loaded",
+                "devils_counter_sequence",
+                "reality_verifier",
+                "technical_non_mutation",
+                "ultimate_loop_runtime_dogfood"
+              ],
+              "additionalProperties": false
+            }
+          prompt: |
+            /goal
+
+            Dogfood the CURRENT checked-out Ultimate Loop candidate in this repository. This run is evaluation-only: do not edit, generate, delete, stage, commit, or push files.
+
+            Frozen outcome:
+            Prove or reject that the updated Ultimate Loop runtime actually loads and executes the new Security Release Gate semantics introduced by this candidate, while preserving the three-destruction architecture and the existing specialist-independence contract.
+
+            Required procedure:
+            1. Establish exact candidate identity from git and inspect AGENTS.md, METHOD.md, SECURITY_RELEASE_GATE.md, and .agents/skills/ultimate-loop/SKILL.md.
+            2. Confirm that the skill actually contains and routes Phase 7 Security Release Gate behavior; do not infer this only from README prose.
+            3. Run the bounded Ultimate Loop as a runtime behavior check, not as a request to modify the method.
+            4. Sequentially spawn the custom role `devils-advocate` using the runtime's explicit agent_type/role field. Give it a security-gate architecture brief and require it to attack false completeness, overlap with Exposure/Reality gates, fail-closed semantics, candidate-identity binding, and permanent-agent/scaffold creep.
+            5. After DA returns, sequentially spawn `counter-advocate` with explicit agent_type and ask it to attack the DA findings and rescue only the minimal responsibility that survives.
+            6. Only after DA and Counter-DA are complete, spawn `reality-verifier` with explicit agent_type and WITHOUT inheriting/forking the parent conversation context. Give it the frozen claims plus repository paths/evidence to inspect independently. It must verify the current candidate identity, that the skill really routes the Security Release Gate, that required UNKNOWN/UNEXPLORED/BLOCKED controls fail closed or require Human risk acceptance, that old-candidate security evidence cannot transfer, and that no fourth destruction loop or permanent security-agent role was introduced.
+            7. The Reality Verifier must not repair anything. If it finds a defect, return FAIL/BLOCKED to the parent.
+            8. Treat this GitHub Action's externally enforced `:read-only` permission profile as the technical non-mutation boundary. Do not claim prompt-only non-mutation.
+            9. Preserve UNKNOWN/BLOCKED rather than inventing PASS. A task name resembling a role is not evidence the custom role loaded.
+
+            PASS requirements:
+            - updated ultimate-loop skill is active in this runtime;
+            - all three named custom roles actually load through explicit agent_type/role selection;
+            - DA and Counter-DA complete sequentially;
+            - independent Reality Verifier completes under the read-only boundary and returns PASS for the frozen claims;
+            - no required evidence is UNKNOWN/BLOCKED.
+
+            Return only the structured result required by the output schema. Select exactly one allowed value for every field. Do not echo enum alternatives.
+
+      - name: Verify candidate remained unchanged
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$DOGFOOD_EXPECTED_HEAD"
+          test "$(git rev-parse HEAD^{tree})" = "$DOGFOOD_EXPECTED_TREE"
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+          echo OBSERVED_WORKTREE_NON_MUTATION_PASS
+
+  contract-check:
+    needs: runtime-dogfood
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate exact structured PASS contract
+        env:
+          RUNTIME_RESULT: ${{ needs.runtime-dogfood.result }}
+          CODEX_FINAL_MESSAGE: ${{ needs.runtime-dogfood.outputs.final_message }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          import sys
+
+          if os.environ.get("RUNTIME_RESULT") != "success":
+              print("RUNTIME_DOGFOOD_CONTRACT_BLOCKED: runtime job did not succeed")
+              sys.exit(1)
+
+          raw = os.environ.get("CODEX_FINAL_MESSAGE", "")
+          try:
+              result = json.loads(raw)
+          except Exception as exc:
+              print(f"RUNTIME_DOGFOOD_CONTRACT_BLOCKED: invalid structured output: {exc}")
+              sys.exit(1)
+
+          expected = {
+              "skill_security_gate_loaded": "PASS",
+              "devils_counter_sequence": "PASS",
+              "reality_verifier": "PASS",
+              "technical_non_mutation": "READ_ONLY_PROFILE",
+              "ultimate_loop_runtime_dogfood": "PASS",
+          }
+          if result != expected:
+              print("RUNTIME_DOGFOOD_CONTRACT_BLOCKED: exact PASS object not returned")
+              print(json.dumps(result, sort_keys=True))
+              sys.exit(1)
+
+          print("RUNTIME_DOGFOOD_CONTRACT_PASS")
+          PY

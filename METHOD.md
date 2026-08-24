@@ -38,6 +38,8 @@ WISH / PROBLEM / EVENT / EXTERNAL CAPABILITY SIGNAL
 → PROMOTED SURVIVOR
 → EXPOSURE GATE WHEN EXTERNAL / COMMERCIAL BOUNDARY APPLIES
 → PUBLIC / SPLIT / PRIVATE
+→ SECURITY RELEASE GATE WHEN UNTRUSTED / INTERNET-REACHABLE BOUNDARY APPLIES
+→ SECURITY_RELEASE_READY / SECURITY_RELEASE_BLOCKED / EXPLICIT_RISK_ACCEPTANCE_REQUIRED
 → DEPLOY / PUBLISH WHEN APPLICABLE
 → DEPLOYMENT IDENTITY
 → POST-DEPLOY DEBUG / REALITY GATE
@@ -45,6 +47,7 @@ WISH / PROBLEM / EVENT / EXTERNAL CAPABILITY SIGNAL
 → STABLE CORE / MOVABLE FRAME
 → WATCH + EXTERNAL CAPABILITY FEED
 → MATERIAL EXPOSURE CHANGE MAY REOPEN EXPOSURE GATE
+→ MATERIAL SECURITY / THREAT CHANGE MAY REOPEN SECURITY RELEASE GATE
 → PERIODIC CHALLENGER SWEEP + EVENT TRIGGERS
 → MATERIAL FAILURE / BETTER CHALLENGER / ERA CHANGE
 → LOOP 3: DARWIN ARENA / KNOCKOUT MATCH
@@ -284,6 +287,40 @@ The detailed contract and DA / Counter-DA are defined in [EXPOSURE_GATE.md](EXPO
 
 ---
 
+## Security Release Gate — external attack boundary, not a fourth destruction
+
+A working or successfully built candidate may still be unsafe to expose to untrusted users, bots, hostile inputs, protected data, privileged tools, or paid/scarce external resources.
+
+Run the Security Release Gate when an internet-reachable or otherwise untrusted external boundary becomes material.
+
+The gate classifies eight control families independently: authorization/isolation; secrets/credentials; dependencies/supply chain; untrusted input/injection/output handling; AI/prompt-injection/agency; abuse/rate/cost/resource bounds; security logging/incident reconstruction; and vulnerability freshness/response.
+
+Each family uses explicit applicability and evidence states. Required `UNKNOWN`, `UNEXPLORED`, or `BLOCKED` evidence cannot silently become release-ready.
+
+Possible outcomes are:
+
+```text
+SECURITY_RELEASE_READY
+SECURITY_RELEASE_BLOCKED
+EXPLICIT_RISK_ACCEPTANCE_REQUIRED
+```
+
+Hard boundaries:
+
+- `WORKS != SAFE_TO_EXPOSE`;
+- `AUTHENTICATED != AUTHORIZED`;
+- `TOOL_RETURNED_ZERO != CONTROL_PROVEN`;
+- `SYSTEM_PROMPT != SECURITY_BOUNDARY`;
+- `OLD_SECURITY_PASS != CURRENT_CANDIDATE_PASS`;
+- `ALERT_RECEIVED != REMEDIATED`;
+- `SECURITY_RELEASE_GATE != FOURTH_DESTRUCTION`.
+
+Explicit risk acceptance is a Human Gate. Existing DA / Counter-DA / Reality Verifier roles should be reused before creating permanent security-agent scaffolding.
+
+The detailed contract and its embedded DA / Counter-DA are defined in [SECURITY_RELEASE_GATE.md](SECURITY_RELEASE_GATE.md).
+
+---
+
 ## Post-deploy Debug / Reality Gate
 
 Build success or deployment completion does not prove runtime correctness.
@@ -365,6 +402,8 @@ A discovery is a candidate trigger, not automatic replacement authority.
 
 A material monetization, customer, threat-model, licensing, or proprietary-asset change may reopen the Exposure Gate without reopening METEOR or DARWIN unless implementation fitness or incumbency is also challenged.
 
+A material vulnerability, exploit, secret exposure, abuse pattern, attack-surface change, privileged AI/tool change, unsupported dependency, or security-control drift may reopen the Security Release Gate. If the new evidence challenges whole-life implementation fitness or incumbency, it may also trigger METEOR/DARWIN.
+
 Doing nothing may be the correct result.
 
 Ultimate Loop itself is subject to Ultimate Loop.
@@ -424,6 +463,6 @@ Every survivor inherits useful memory of the dead:
 
 ## Method invariant
 
-**Search current reality before claiming superiority. Keep a bounded, replaceable path for material external capability changes to reach discovery and challenger selection without granting that feed authority. Kill the need. Kill the implementation. Keep challenging the incumbent when reality changes. Re-evaluate the public/private boundary when commercial value, external distribution, proprietary assets, licensing, or threat reality materially changes; preserve public evidence when useful, but never let historical openness silently force future commercial-core disclosure. Verify deployed reality before calling it stable. Preserve recovery capability. Preserve the human-important outcome and the memory required to regenerate it. Observe material history when reconstructability matters, without allowing the observer to become unearned authority. Generate and replay destructive evidence when justified, bound destructive expansion, distinguish untested/blocked scope from convergence, and never let a generator, fault injector, model checker, observer, exposure warning, or external capability feed silently become promotion or mutation authority.**
+**Search current reality before claiming superiority. Keep a bounded, replaceable path for material external capability changes to reach discovery and challenger selection without granting that feed authority. Kill the need. Kill the implementation. Keep challenging the incumbent when reality changes. Re-evaluate the public/private boundary when commercial value, external distribution, proprietary assets, licensing, or threat reality materially changes; preserve public evidence when useful, but never let historical openness silently force future commercial-core disclosure. Before exposing a material untrusted or internet-reachable surface, bind security evidence to the exact candidate, classify applicable authorization/secret/supply-chain/input/AI-agency/abuse/logging/freshness controls, and fail closed or require explicit Human risk acceptance when required evidence is missing. Verify deployed reality before calling it stable. Preserve recovery capability. Preserve the human-important outcome and the memory required to regenerate it. Observe material history when reconstructability matters, without allowing the observer to become unearned authority. Generate and replay destructive evidence when justified, bound destructive expansion, distinguish untested/blocked scope from convergence, and never let a generator, scanner, fault injector, model checker, observer, exposure warning, security-review prompt, or external capability feed silently become promotion or mutation authority.**
 
 Historical canonical source: [RTS / thin-rts / ULTIMATE_LOOP_METHOD.md](https://github.com/nobutakayamauchi/RTS/blob/main/thin-rts/ULTIMATE_LOOP_METHOD.md)
