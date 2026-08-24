@@ -1,7 +1,7 @@
 name: Ultimate Loop maintenance watch
 
 on:
-  pull_request:
+  pull_request_target:
     branches: [main]
     types: [opened, synchronize, reopened]
     paths:
@@ -43,16 +43,18 @@ jobs:
   detect-and-notify:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository history
+      - name: Checkout trusted base/default branch only
         uses: actions/checkout@v5
         with:
-          fetch-depth: 0
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          fetch-depth: 2
           persist-credentials: false
 
-      - name: Build maintenance packet
+      - name: Build maintenance packet without executing candidate code
         id: packet
         shell: bash
         env:
+          GH_TOKEN: ${{ github.token }}
           EVENT_NAME: ${{ github.event_name }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
@@ -64,26 +66,32 @@ jobs:
         run: |
           set -euo pipefail
 
-          if [ "$EVENT_NAME" = "pull_request" ]; then
+          if [ "$EVENT_NAME" = "pull_request_target" ]; then
             base_sha="$PR_BASE_SHA"
             candidate_sha="$PR_HEAD_SHA"
             maintenance_id="MAINT-PR-${PR_NUMBER}"
             source_ref="PR #${PR_NUMBER}"
+            # Critical trust boundary: inspect changed-path metadata via the GitHub API.
+            # Never checkout, source, or execute the PR candidate in this privileged WATCH job.
+            changed="$(gh api --paginate "repos/${REPOSITORY}/pulls/${PR_NUMBER}/files?per_page=100" --jq '.[].filename')"
           elif [ "$EVENT_NAME" = "push" ]; then
             base_sha="$PUSH_BASE_SHA"
             candidate_sha="$PUSH_HEAD_SHA"
             maintenance_id="MAINT-PUSH-${candidate_sha:0:12}"
             source_ref="direct main push"
+            git fetch --no-tags --depth=2 origin "$candidate_sha" "$base_sha" >/dev/null 2>&1 || true
+            changed="$(git diff --name-only "$base_sha" "$candidate_sha" || true)"
           else
             candidate_sha="$(git rev-parse HEAD)"
             base_sha="$(git rev-parse HEAD^ 2>/dev/null || git rev-parse HEAD)"
             maintenance_id="MAINT-MANUAL-${candidate_sha:0:12}"
             source_ref="manual watch"
+            changed="$(git diff --name-only "$base_sha" "$candidate_sha" || true)"
           fi
 
-          git cat-file -e "${base_sha}^{commit}"
-          git cat-file -e "${candidate_sha}^{commit}"
-          changed="$(git diff --name-only "$base_sha" "$candidate_sha" || true)"
+          test -n "$base_sha"
+          test -n "$candidate_sha"
+          test "$base_sha" != "$candidate_sha" || [ "$EVENT_NAME" = "workflow_dispatch" ]
 
           state="MAINTENANCE_REVIEW_REQUIRED"
           trigger_class="T1_CANONICAL_METHOD_CHANGE"
@@ -109,7 +117,7 @@ jobs:
             echo
             echo "## Ultimate Loop Maintenance Packet"
             echo
-            echo "**Nothing paid has started.** This WATCH workflow has no paid-provider secret and cannot invoke the paid maintenance Runtime."
+            echo "**Nothing paid has started.** This trusted-base WATCH workflow has no paid-provider secret and cannot invoke the paid maintenance Runtime."
             echo
             echo "| Field | Value |"
             echo "|---|---|"
@@ -124,6 +132,14 @@ jobs:
             echo "| RECOMMENDED_MODEL/RUNTIME | \`gpt-5.6-sol / high / Codex Action\` |"
             echo "| AUTHORIZATION_EXPIRY | \`${expiry}\` |"
             echo "| WATCH_EVIDENCE | ${RUN_URL} |"
+            echo
+            echo "### Trust boundary"
+            echo
+            if [ "$EVENT_NAME" = "pull_request_target" ]; then
+              echo "This WATCH run executed the workflow from the trusted base branch and inspected PR file metadata through the GitHub API. It did **not** checkout or execute the candidate SHA."
+            else
+              echo "This WATCH run inspected the trusted/default-branch repository state."
+            fi
             echo
             echo "### Why now"
             echo
