@@ -54,6 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       issue_number: ${{ steps.preflight.outputs.issue_number }}
+      authorization_expiry: ${{ steps.preflight.outputs.authorization_expiry }}
     steps:
       - name: Checkout exact candidate
         uses: actions/checkout@v5
@@ -74,9 +75,15 @@ jobs:
           MODEL: ${{ inputs.model }}
           EFFORT: ${{ inputs.reasoning_effort }}
           AUTHORIZATION_PHRASE: ${{ inputs.authorization_phrase }}
+          ACTOR: ${{ github.actor }}
+          REPOSITORY_OWNER: ${{ github.repository_owner }}
         run: |
           set -euo pipefail
 
+          # Current V1 authorization profile: the repository owner must perform the
+          # dispatch personally. Future multi-human authorization must be an explicit
+          # policy change rather than an accidental collaborator privilege expansion.
+          test "$ACTOR" = "$REPOSITORY_OWNER"
           test "$AUTHORIZATION_PHRASE" = "AUTHORIZE_PAID_MAINTENANCE"
           test "$MAX_BUDGET_USD" = "5.00"
           test "$MODEL" = "gpt-5.6-sol"
@@ -85,6 +92,7 @@ jobs:
           test "$(git rev-parse HEAD)" = "$CANDIDATE_SHA"
           git cat-file -e "${BASE_SHA}^{commit}"
           git cat-file -e "${CANDIDATE_SHA}^{commit}"
+          git merge-base --is-ancestor "$BASE_SHA" "$CANDIDATE_SHA"
           test -z "$(git status --porcelain=v1 --untracked-files=all)"
           grep -q 'MAINTENANCE_GATE.md' .agents/skills/ultimate-loop/SKILL.md
           grep -q 'PAYMENT_COMPLETED != SPEND_AUTHORITY' MAINTENANCE_GATE.md
@@ -95,6 +103,26 @@ jobs:
           issue_body="$(gh issue view "$issue_number" --repo "$GITHUB_REPOSITORY" --json body --jq '.body')"
           printf '%s' "$issue_body" | grep -Fq "$BASE_SHA"
           printf '%s' "$issue_body" | grep -Fq "$CANDIDATE_SHA"
+          printf '%s' "$issue_body" | grep -Fq 'PAID_MAINTENANCE_RECOMMENDED'
+          printf '%s' "$issue_body" | grep -Fq 'USD 5.00'
+          printf '%s' "$issue_body" | grep -Fq 'gpt-5.6-sol / high'
+
+          authorization_expiry="$(printf '%s\n' "$issue_body" | sed -n 's/^| AUTHORIZATION_EXPIRY | `\([^`]*\)` |$/\1/p' | head -n1)"
+          test -n "$authorization_expiry"
+          AUTHORIZATION_EXPIRY="$authorization_expiry" python - <<'PY'
+          import os
+          from datetime import datetime, timezone
+
+          raw = os.environ["AUTHORIZATION_EXPIRY"]
+          try:
+              expiry = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+          except ValueError as exc:
+              raise SystemExit(f"invalid authorization expiry: {exc}")
+          if expiry.tzinfo is None:
+              raise SystemExit("authorization expiry must be timezone-aware")
+          if expiry <= datetime.now(timezone.utc):
+              raise SystemExit("maintenance authorization packet is expired")
+          PY
 
           prior_comments="$(gh issue view "$issue_number" --repo "$GITHUB_REPOSITORY" --json comments --jq '.comments[].body' || true)"
           if printf '%s\n' "$prior_comments" | grep -Fq "PAID_ATTEMPT_STARTED candidate_sha=$CANDIDATE_SHA"; then
@@ -105,6 +133,7 @@ jobs:
           echo "AUTHORIZED_CANDIDATE_HEAD=$(git rev-parse HEAD)"
           echo "AUTHORIZED_CANDIDATE_TREE=$(git rev-parse HEAD^{tree})"
           echo "issue_number=$issue_number" >> "$GITHUB_OUTPUT"
+          echo "authorization_expiry=$authorization_expiry" >> "$GITHUB_OUTPUT"
 
   paid-maintenance:
     needs: authorization-preflight
@@ -204,6 +233,7 @@ jobs:
             - MODEL: ${{ inputs.model }}
             - REASONING_EFFORT: ${{ inputs.reasoning_effort }}
             - MAX_PAID_ATTEMPTS: 1
+            - AUTHORIZATION_EXPIRY: ${{ needs.authorization-preflight.outputs.authorization_expiry }}
             - provider/project boundary attested by protected-environment preflight before this step.
 
             Frozen outcome:
@@ -212,12 +242,12 @@ jobs:
             Required procedure:
             1. Establish exact git HEAD/tree identity yourself and inspect METHOD.md, AGENTS.md, MAINTENANCE_GATE.md, MAINTENANCE_GATE_DA_2026-08-25.md, .agents/skills/ultimate-loop/SKILL.md, and both maintenance workflow files.
             2. Confirm the updated skill actually routes Ultimate Loop self-maintenance through MAINTENANCE_GATE.md. Do not infer this from README or filenames.
-            3. Confirm WATCH has no paid-provider secret and cannot invoke the paid action automatically.
-            4. Confirm the paid workflow is manual-only, exact-candidate-bound, typed-human-authorized, model/effort bounded, one-attempt-by-default, and uses the maintenance-specific secret under the paid-maintenance environment.
+            3. Confirm WATCH has no paid-provider secret, runs pull-request detection from trusted base/default-branch authority without checking out candidate code, and cannot invoke the paid action automatically.
+            4. Confirm the paid workflow is manual-only in normal operation, exact-candidate-bound, owner-dispatched under the current V1 profile, typed-human-authorized, unexpired, base/candidate lineage-bound, model/effort bounded, one-attempt-by-default, and uses the maintenance-specific secret under the paid-maintenance environment.
             5. Treat the workflow's declared USD value or environment variable as an attested precondition, not magical proof of provider billing. Verify the method explicitly preserves that distinction and fails closed when the required technical spend-bound evidence is absent.
-            6. Sequentially spawn the custom `devils-advocate` role through the runtime's explicit agent_type/role field. Require it to attack fourth-loop creep, payment-as-authority, secret leakage, notification false certainty, budget false certainty, auto-retry, candidate drift, and verifier self-approval.
+            6. Sequentially spawn the custom `devils-advocate` role through the runtime's explicit agent_type/role field. Require it to attack fourth-loop creep, payment-as-authority, secret leakage, notification false certainty, budget false certainty, auto-retry, candidate drift, trusted-WATCH bypass, expired authorization, and verifier self-approval.
             7. Only after DA returns, spawn `counter-advocate` explicitly and require it to attack the DA findings, rescuing only the smallest responsibility that survives.
-            8. Only after both are complete, spawn `reality-verifier` explicitly in a clean/non-inherited context. Give it the frozen claims and repository evidence paths. It must independently verify the current candidate identity, actual skill routing, role sequence, authority boundaries, one-attempt policy, fail-closed UNKNOWN/BLOCKED behavior, and no fourth loop/permanent maintenance-agent bureaucracy.
+            8. Only after both are complete, spawn `reality-verifier` explicitly in a clean/non-inherited context. Give it the frozen claims and repository evidence paths. It must independently verify the current candidate identity, actual skill routing, role sequence, authority boundaries, one-attempt policy, authorization expiry, fail-closed UNKNOWN/BLOCKED behavior, and no fourth loop/permanent maintenance-agent bureaucracy.
             9. The Reality Verifier must not repair anything. A task label resembling a role is not evidence that the custom role loaded.
             10. Treat this GitHub Action's externally enforced `:read-only` permission profile as the technical non-mutation boundary. Verify before/after repository state as supporting evidence, not as a substitute for the permission boundary.
             11. Preserve FAIL/BLOCKED/stale evidence. Do not retry inside this run.
