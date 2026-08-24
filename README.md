@@ -36,6 +36,7 @@ The protected subject is the **human-important outcome** — not the current imp
 | [**METHOD.md**](METHOD.md) | Canonical end-to-end method |
 | [**THREE_DESTRUCTIONS.md**](THREE_DESTRUCTIONS.md) | Raison d'être Destroy / METEOR / DARWIN |
 | [**EXPOSURE_GATE.md**](EXPOSURE_GATE.md) | Cross-cutting Human Gate for PUBLIC / SPLIT / PRIVATE publication boundaries |
+| [**SECURITY_RELEASE_GATE.md**](SECURITY_RELEASE_GATE.md) | Cross-cutting fail-closed gate for untrusted/internet-reachable release surfaces |
 | [**EXTERNAL_CAPABILITY_FEED.md**](EXTERNAL_CAPABILITY_FEED.md) | Replaceable current-reality / challenger-supply layer for Gate 0 + WATCH/DARWIN |
 | [**TRACE_OBSERVATION_LAYER.md**](TRACE_OBSERVATION_LAYER.md) | Passive cross-cutting evidence observation and replay contract |
 | [**LINEAGE.md**](LINEAGE.md) | How WITNESS → Five Principles → RTS Evolution → Ultimate Loop happened |
@@ -115,6 +116,43 @@ PRIVATE
 
 ---
 
+## Security Release Gate
+
+A repository can be private and still deploy an insecure public service. A public repository can still implement a secure service. Ultimate Loop therefore separates **publication visibility** from **external attack-surface readiness**.
+
+When a survivor becomes internet-reachable or otherwise accepts untrusted actors/input, touches protected data, uses privileged credentials/tools, gives an AI/agent access to protected side effects, or exposes paid/scarce operations to external triggering, the **Security Release Gate** checks eight control families:
+
+1. authorization and isolation;
+2. secrets and credentials;
+3. dependencies and supply chain;
+4. untrusted input / injection / unsafe output handling;
+5. AI prompt injection / agency boundary;
+6. abuse / rate / cost / resource bounds;
+7. security logging / incident reconstruction;
+8. vulnerability freshness / response path.
+
+Each family is explicitly classified as applicable or not, and its evidence is recorded as `PASS / FAIL / UNKNOWN / UNEXPLORED`. Required unknowns do not silently become green.
+
+```text
+WORKS != SAFE_TO_EXPOSE
+TOOL_RETURNED_ZERO != CONTROL_PROVEN
+OLD_SECURITY_PASS != CURRENT_CANDIDATE_PASS
+```
+
+Possible gate outcomes are:
+
+```text
+SECURITY_RELEASE_READY
+SECURITY_RELEASE_BLOCKED
+EXPLICIT_RISK_ACCEPTANCE_REQUIRED
+```
+
+Risk acceptance is a Human Gate. The gate deliberately reuses existing DA / Counter-DA / Reality Verifier roles before inventing permanent security-agent scaffolding.
+
+→ [Security Release Gate contract](SECURITY_RELEASE_GATE.md)
+
+---
+
 ## External Capability Feed
 
 Ultimate Loop now makes the WITNESS-derived "look outside before building/preserving" responsibility explicit as a **replaceable challenger-supply layer**.
@@ -177,6 +215,8 @@ WISH / PROBLEM / EVENT / EXTERNAL CAPABILITY SIGNAL
 → PROMOTED SURVIVOR
 → EXPOSURE GATE WHEN EXTERNAL / COMMERCIAL BOUNDARY APPLIES
 → PUBLIC / SPLIT / PRIVATE
+→ SECURITY RELEASE GATE WHEN UNTRUSTED / INTERNET-REACHABLE BOUNDARY APPLIES
+→ SECURITY_RELEASE_READY / SECURITY_RELEASE_BLOCKED / EXPLICIT_RISK_ACCEPTANCE_REQUIRED
 → DEPLOY / PUBLISH WHEN APPLICABLE
 → DEPLOYMENT IDENTITY
 → POST-DEPLOY DEBUG / REALITY GATE
@@ -184,6 +224,7 @@ WISH / PROBLEM / EVENT / EXTERNAL CAPABILITY SIGNAL
 → STABLE CORE / MOVABLE FRAME
 → WATCH + EXTERNAL CAPABILITY FEED
 → MATERIAL EXPOSURE CHANGE MAY REOPEN EXPOSURE GATE
+→ MATERIAL SECURITY / THREAT CHANGE MAY REOPEN SECURITY RELEASE GATE
 → PERIODIC CHALLENGER SWEEP + EVENT TRIGGERS
 → MATERIAL FAILURE / BETTER CHALLENGER / ERA CHANGE
 → DARWIN ARENA
@@ -200,8 +241,11 @@ Hard reminders:
 NO CURRENT LANDSCAPE SWEEP → NO SUPERIORITY CLAIM
 EXTERNAL CAPABILITY FEED != FOURTH LOOP
 EXPOSURE GATE != FOURTH DESTRUCTION
+SECURITY RELEASE GATE != FOURTH DESTRUCTION
 PUBLIC ONCE != PUBLIC FOREVER
 EXPOSURE WARNING != VISIBILITY MUTATION AUTHORITY
+WORKS != SAFE_TO_EXPOSE
+TOOL_RETURNED_ZERO != CONTROL_PROVEN
 DEPLOYED != OBSERVED_CORRECT
 PATCH APPLIED != FIX VALIDATED
 NEW OCCUPANT != NEW MEMORY
@@ -210,6 +254,7 @@ TRACE OBSERVER != GOVERNOR
 
 → [Canonical method](METHOD.md)  
 → [Exposure Gate](EXPOSURE_GATE.md)  
+→ [Security Release Gate](SECURITY_RELEASE_GATE.md)  
 → [External Capability Feed](EXTERNAL_CAPABILITY_FEED.md)  
 → [TRACE observation layer](TRACE_OBSERVATION_LAYER.md)
 
