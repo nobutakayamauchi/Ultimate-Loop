@@ -70,6 +70,32 @@ The method must survive changes to OpenAI, Codex, GitHub, billing APIs, model na
 
 **Disposition:** ACCEPT.
 
+### DA-11 — Candidate-side WATCH can self-attest
+
+The first WATCH prototype ran on `pull_request`, which means a candidate that edits the WATCH workflow can execute its own edited detector and then cite that success. That is structurally weak for a leash on AI self-maintenance.
+
+**Disposition:** ACCEPT. Canonical V1 pull-request WATCH moves to trusted-base `pull_request_target`, reads candidate file metadata through the GitHub API, and does not checkout or execute candidate content.
+
+### DA-12 — First-install `workflow_dispatch` has a bootstrap paradox
+
+GitHub only delivers manual `workflow_dispatch` when the workflow file exists on the default branch. A new manual paid-maintenance workflow therefore cannot prove its own normal pre-merge dispatch path on the first installation.
+
+Pretending otherwise would create fake Runtime evidence.
+
+**Disposition:** ACCEPT. Introduce an explicit dormant-bootstrap state: design/static/independent review first, human-authorized install to default branch without claiming PASS, trusted main WATCH creates the exact packet, then default-branch paid dispatch performs the real Runtime/Reality verification. Until that PASS, the gate is installed but not ACTIVE.
+
+### DA-13 — Authorization expiry that is only displayed is decorative
+
+The initial workflow recorded an expiry in the maintenance packet but did not enforce it before paid execution.
+
+**Disposition:** ACCEPT. Paid preflight now parses the exact Issue expiry, requires a timezone-aware future timestamp, and blocks expired packets.
+
+### DA-14 — Arbitrary commit pairs weaken exact-candidate binding
+
+Checking only that `base_sha` and `candidate_sha` are valid commits permits unrelated commit pairs. Likewise, collaborator dispatch rights could silently widen the V1 human authority set.
+
+**Disposition:** ACCEPT. Paid preflight now requires base ancestry of candidate and, in the current V1 profile, requires `github.actor == github.repository_owner`. Multi-human authorization is a future explicit policy change, not an accidental default.
+
 ## Counter-Advocate
 
 The DA destroys several proposed implementations, but not the responsibility itself.
@@ -77,30 +103,35 @@ The DA destroys several proposed implementations, but not the responsibility its
 A smaller survivor exists:
 
 1. reuse WATCH as the detection owner rather than adding a fourth loop;
-2. use deterministic/current repository and external-feed evidence first;
-3. notify via a replaceable repository record (GitHub Issue in V1);
-4. require explicit authorization bound to `MAINTENANCE_ID + exact candidate SHA + model/runtime + budget + attempt count + expiry`;
-5. keep paid provider secrets outside WATCH;
-6. permit one paid attempt by default;
-7. use existing DA, Counter-DA, and Reality Verifier roles rather than creating a maintenance-agent organization;
-8. stop on FAIL/BLOCKED/budget exhaustion and require a new human decision for a new candidate;
-9. bind PASS to exact candidate identity;
-10. treat OpenAI/GitHub as the current implementation profile, not method dependencies.
+2. run PR WATCH from trusted base/default-branch authority and inspect candidate metadata without executing candidate code;
+3. use deterministic/current repository and external-feed evidence first;
+4. notify via a replaceable repository record (GitHub Issue in V1);
+5. require explicit authorization bound to `MAINTENANCE_ID + exact candidate SHA + model/runtime + budget + attempt count + expiry`;
+6. enforce authorization expiry and candidate lineage before paid execution;
+7. keep paid provider secrets outside WATCH;
+8. permit one paid attempt by default;
+9. use existing DA, Counter-DA, and Reality Verifier roles rather than creating a maintenance-agent organization;
+10. stop on FAIL/BLOCKED/budget exhaustion and require a new human decision for a new candidate;
+11. bind PASS to exact candidate identity;
+12. treat OpenAI/GitHub as the current implementation profile, not method dependencies;
+13. make the first-install bootstrap limitation explicit rather than smuggling it into a false pre-merge PASS.
 
 This satisfies the frozen responsibility with less permanent machinery than a dedicated maintenance subsystem.
 
 ## Survivor
 
-`WATCH SELF-MAINTENANCE PROFILE + HUMAN/SPEND GATE + EXISTING ULTIMATE LOOP ROLES`
+`TRUSTED WATCH SELF-MAINTENANCE PROFILE + HUMAN/SPEND GATE + EXISTING ULTIMATE LOOP ROLES`
 
 Not:
 
-`FOURTH LOOP + PERMANENT PAID WATCHER + AUTO-REPAIR/AUTO-RETRY`
+`FOURTH LOOP + CANDIDATE SELF-ATTESTATION + PERMANENT PAID WATCHER + AUTO-REPAIR/AUTO-RETRY`
 
 ## Remaining Reality boundary
 
 The design survives this parent-level DA/Counter-DA record, but promotion still requires runtime evidence that the updated `/goal` skill and role sequence actually load and obey the technical boundaries.
 
-Until that evidence exists:
+For the first installation, GitHub's default-branch manual-dispatch constraint creates an explicit bootstrap Human Gate. A dormant install is not a Runtime PASS.
 
-`DESIGN_SURVIVED != RUNTIME_VERIFIED != PROMOTION_READY`.
+Until the post-install exact-candidate paid Runtime and independent verifier pass:
+
+`DESIGN_SURVIVED != BOOTSTRAP_INSTALLED != RUNTIME_VERIFIED != ACTIVE`.
