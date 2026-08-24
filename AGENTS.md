@@ -10,7 +10,8 @@ Before making a material design or implementation decision, read only the docume
 2. `SUPERSESSION_RULE.md` — which artifact wins when guidance conflicts.
 3. `TRACE_OBSERVATION_LAYER.md` — evidence/observation boundary when reconstructability matters.
 4. `EXPOSURE_GATE.md` — required when external distribution, monetization, protected assets, or security-sensitive internals become material.
-5. `LINEAGE.md` — continuity and predecessor memory when replacement/reconstruction is material.
+5. `MAINTENANCE_GATE.md` — required when Ultimate Loop itself, its `/goal` routing, agent/runtime contract, evidence semantics, or paid self-maintenance path is materially changed or challenged.
+6. `LINEAGE.md` — continuity and predecessor memory when replacement/reconstruction is material.
 
 Load extension documents only when their gate is actually applicable. Do not read every historical DA file by default.
 
@@ -22,7 +23,8 @@ When the user writes `/goal`, asks to “run Ultimate Loop”, or requests end-t
 - keep moving until the current bounded goal is completed, a Human Gate is required, or a real external-evidence/permission boundary prevents progress;
 - do not stop merely to ask whether to continue to the next mechanical step;
 - preserve explicit `UNKNOWN`, `CONFLICT`, and blocked evidence instead of inventing success;
-- prefer the smallest surviving implementation over new scaffolding.
+- prefer the smallest surviving implementation over new scaffolding;
+- when the subject is Ultimate Loop itself, apply `MAINTENANCE_GATE.md` before any paid Runtime/model execution or self-maintenance promotion claim.
 
 `/goal` is a repository convention, not a claim that Codex has a provider-native slash command of that name.
 
@@ -71,6 +73,15 @@ If Ultimate Loop concludes that its own skill or custom-agent configuration must
 
 `SELF-MODIFICATION DESIRED != SELF-MODIFICATION AUTHORIZED`.
 
+When self-maintenance would invoke a paid provider/runtime, the Maintenance Gate adds a separate authority boundary:
+
+- WATCH/detection must not receive paid-provider credentials merely to decide whether maintenance is needed;
+- account credit, API-key presence, payment, or a provider billing notification is not permission to spend;
+- paid execution must bind to an exact candidate, explicit human authorization, model/runtime allowlist, budget envelope, maximum paid attempts, and expiry;
+- the default paid-attempt count is one per candidate; FAIL/BLOCKED/budget exhaustion does not authorize retry or top-up;
+- a workflow-declared dollar amount is not proof of a hard spend cap; required provider/equivalent enforcement evidence must be current or the paid path stays BLOCKED;
+- repair and final independent verification remain separate; the verifier must not repair the candidate it verifies.
+
 ## Hard authority boundaries
 
 - `CODEX != ULTIMATE LOOP`.
@@ -82,6 +93,11 @@ If Ultimate Loop concludes that its own skill or custom-agent configuration must
 - `NEW != BETTER`.
 - `NOT_RUN != NOT_APPLICABLE`.
 - `PROMPT NON-MUTATION != TECHNICAL READ-ONLY`.
+- `PAYMENT_COMPLETED != SPEND_AUTHORITY`.
+- `API_KEY_PRESENT != SPEND_AUTHORITY`.
+- `HUMAN_AUTHORIZATION != PROMOTION_AUTHORITY`.
+- `FAILED_PAID_ATTEMPT != PERMISSION_TO_RETRY`.
+- `OLD_MAINTENANCE_PASS != CURRENT_CANDIDATE_PASS`.
 
 A verifier must not silently mutate the candidate it is verifying. If a fix is needed, return the finding to the parent implementer, then verify the new state.
 
@@ -112,10 +128,11 @@ Before adding a permanent file, agent, watcher, service, control plane, or abstr
 When editing the canonical method:
 
 1. preserve the three destructions (Raison d’être, METEOR, DARWIN);
-2. do not accidentally create a fourth loop from an observation, exposure, or automation layer;
+2. do not accidentally create a fourth loop from an observation, exposure, maintenance, or automation layer;
 3. keep implementations/providers replaceable;
 4. preserve PHOENIX/LINEAGE reconstruction obligations;
-5. update canonical docs only when the new rule actually survives DA + Counter-DA and current evidence.
+5. update canonical docs only when the new rule actually survives DA + Counter-DA and current evidence;
+6. when paid Runtime evidence is required for Ultimate Loop self-maintenance, do not promote the candidate until the Maintenance Gate's exact-candidate authorization and independent Reality requirements are satisfied.
 
 ## Completion report
 
