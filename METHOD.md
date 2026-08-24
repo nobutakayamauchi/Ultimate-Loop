@@ -44,6 +44,10 @@ WISH / PROBLEM / EVENT / EXTERNAL CAPABILITY SIGNAL
 → DEPLOYMENT_VALIDATED / FIX_VALIDATED
 → STABLE CORE / MOVABLE FRAME
 → WATCH + EXTERNAL CAPABILITY FEED
+→ IF ULTIMATE LOOP ITSELF IS THE MATERIAL SUBJECT: MAINTENANCE GATE
+→ FREE / BOUNDED TRIAGE → HUMAN NOTIFICATION
+→ PAID MAINTENANCE ONLY AFTER EXACT-CANDIDATE HUMAN AUTHORIZATION + BOUNDED SPEND
+→ EXISTING DA → COUNTER-DA → INDEPENDENT REALITY VERIFIER → STOP / PROMOTION_ELIGIBLE
 → MATERIAL EXPOSURE CHANGE MAY REOPEN EXPOSURE GATE
 → PERIODIC CHALLENGER SWEEP + EVENT TRIGGERS
 → MATERIAL FAILURE / BETTER CHALLENGER / ERA CHANGE
@@ -369,6 +373,26 @@ Doing nothing may be the correct result.
 
 Ultimate Loop itself is subject to Ultimate Loop.
 
+When the material subject is Ultimate Loop itself — including its canonical flow, `/goal` routing, specialist/independence contract, evidence semantics, provider/runtime assumptions, security/exposure controls, or paid verification path — WATCH must apply the **Maintenance Gate** before any paid self-maintenance execution or promotion claim.
+
+The Maintenance Gate reuses WATCH and the existing three destructions; it is not a fourth loop. Its cheap detector may classify and notify, but it owns no paid secret, repair authority, spend authority, or promotion authority.
+
+```text
+MAINTENANCE_SIGNAL != MAINTENANCE_REQUIRED
+PAYMENT_COMPLETED != SPEND_AUTHORITY
+API_KEY_PRESENT != SPEND_AUTHORITY
+HUMAN_AUTHORIZATION != PROMOTION_AUTHORITY
+FAILED_PAID_ATTEMPT != PERMISSION_TO_RETRY
+OLD_MAINTENANCE_PASS != CURRENT_CANDIDATE_PASS
+```
+
+Paid maintenance requires an exact candidate, explicit human authorization, a bounded budget envelope, an allowed model/runtime, and a technical permission boundary. A workflow-declared dollar amount is not itself proof of a provider hard cap; when the required spend-bound evidence is unavailable or stale, the paid path fails closed unless the human explicitly authorizes a different bounded risk envelope.
+
+The current V1 operating profile is free/deterministic WATCH plus GitHub notification, followed only when authorized by one manual paid Sol inspection for the exact candidate under a read-only verification boundary. No paid failure automatically retries, repairs, tops up, or self-promotes.
+
+Detailed contract: [MAINTENANCE_GATE.md](MAINTENANCE_GATE.md).  
+Design DA / Counter-DA record: [MAINTENANCE_GATE_DA_2026-08-25.md](MAINTENANCE_GATE_DA_2026-08-25.md).
+
 A periodic challenger sweep may refresh the landscape around the method and its material occupants. A knockout match occurs only when a material challenger, materially superior architecture, new failure class, or other credible challenge exists.
 
 `ULTIMATE LOOP = NEVER PERMANENTLY IMMUNE FROM CHALLENGE`
@@ -424,6 +448,6 @@ Every survivor inherits useful memory of the dead:
 
 ## Method invariant
 
-**Search current reality before claiming superiority. Keep a bounded, replaceable path for material external capability changes to reach discovery and challenger selection without granting that feed authority. Kill the need. Kill the implementation. Keep challenging the incumbent when reality changes. Re-evaluate the public/private boundary when commercial value, external distribution, proprietary assets, licensing, or threat reality materially changes; preserve public evidence when useful, but never let historical openness silently force future commercial-core disclosure. Verify deployed reality before calling it stable. Preserve recovery capability. Preserve the human-important outcome and the memory required to regenerate it. Observe material history when reconstructability matters, without allowing the observer to become unearned authority. Generate and replay destructive evidence when justified, bound destructive expansion, distinguish untested/blocked scope from convergence, and never let a generator, fault injector, model checker, observer, exposure warning, or external capability feed silently become promotion or mutation authority.**
+**Search current reality before claiming superiority. Keep a bounded, replaceable path for material external capability changes to reach discovery and challenger selection without granting that feed authority. Kill the need. Kill the implementation. Keep challenging the incumbent when reality changes. Re-evaluate the public/private boundary when commercial value, external distribution, proprietary assets, licensing, or threat reality materially changes; preserve public evidence when useful, but never let historical openness silently force future commercial-core disclosure. Verify deployed reality before calling it stable. Preserve recovery capability. Preserve the human-important outcome and the memory required to regenerate it. Observe material history when reconstructability matters, without allowing the observer to become unearned authority. Generate and replay destructive evidence when justified, bound destructive expansion, distinguish untested/blocked scope from convergence, and never let a generator, fault injector, model checker, observer, exposure warning, external capability feed, maintenance detector, payment state, API key, or available budget silently become promotion, mutation, retry, or spend authority.**
 
 Historical canonical source: [RTS / thin-rts / ULTIMATE_LOOP_METHOD.md](https://github.com/nobutakayamauchi/RTS/blob/main/thin-rts/ULTIMATE_LOOP_METHOD.md)
