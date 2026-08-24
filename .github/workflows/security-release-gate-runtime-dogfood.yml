@@ -1,0 +1,89 @@
+name: Security Release Gate runtime dogfood
+
+on:
+  push:
+    branches:
+      - feature/security-release-gate-20260825
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  runtime-dogfood:
+    runs-on: ubuntu-latest
+    outputs:
+      final_message: ${{ steps.codex.outputs.final-message }}
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Record candidate identity before Codex
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "DOGFOOD_HEAD=$(git rev-parse HEAD)"
+          echo "DOGFOOD_TREE=$(git rev-parse HEAD^{tree})"
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+          grep -q '^name: ultimate-loop$' .agents/skills/ultimate-loop/SKILL.md
+          grep -q 'SECURITY_RELEASE_GATE.md' .agents/skills/ultimate-loop/SKILL.md
+          grep -q 'Security Release Gate' METHOD.md
+
+      - name: Run updated /goal with independent Reality Verifier
+        id: codex
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          permission-profile: ":read-only"
+          safety-strategy: drop-sudo
+          effort: high
+          prompt: |
+            /goal
+
+            Dogfood the CURRENT checked-out Ultimate Loop candidate in this repository. This run is evaluation-only: do not edit, generate, delete, stage, commit, or push files.
+
+            Frozen outcome:
+            Prove or reject that the updated Ultimate Loop runtime actually loads and executes the new Security Release Gate semantics introduced by this candidate, while preserving the three-destruction architecture and the existing specialist-independence contract.
+
+            Required procedure:
+            1. Establish exact candidate identity from git and inspect AGENTS.md, METHOD.md, SECURITY_RELEASE_GATE.md, and .agents/skills/ultimate-loop/SKILL.md.
+            2. Confirm that the skill actually contains and routes Phase 7 Security Release Gate behavior; do not infer this only from README prose.
+            3. Run the bounded Ultimate Loop as a runtime behavior check, not as a request to modify the method.
+            4. Sequentially spawn the custom role `devils-advocate` using the runtime's explicit agent_type/role field. Give it a security-gate architecture brief and require it to attack false completeness, overlap with Exposure/Reality gates, fail-closed semantics, candidate-identity binding, and permanent-agent/scaffold creep.
+            5. After DA returns, sequentially spawn `counter-advocate` with explicit agent_type and ask it to attack the DA findings and rescue only the minimal responsibility that survives.
+            6. Only after DA and Counter-DA are complete, spawn `reality-verifier` with explicit agent_type and WITHOUT inheriting/forking the parent conversation context. Give it the frozen claims plus repository paths/evidence to inspect independently. It must verify the current candidate identity, that the skill really routes the Security Release Gate, that required UNKNOWN/UNEXPLORED/BLOCKED controls fail closed or require Human risk acceptance, that old-candidate security evidence cannot transfer, and that no fourth destruction loop or permanent security-agent role was introduced.
+            7. The Reality Verifier must not repair anything. If it finds a defect, return FAIL/BLOCKED to the parent.
+            8. Treat this GitHub Action's externally enforced `:read-only` permission profile as the technical non-mutation boundary. Do not claim prompt-only non-mutation.
+            9. Preserve UNKNOWN/BLOCKED rather than inventing PASS. A task name resembling a role is not evidence the custom role loaded.
+
+            PASS requirements:
+            - updated ultimate-loop skill is active in this runtime;
+            - all three named custom roles actually load through explicit agent_type/role selection;
+            - DA and Counter-DA complete sequentially;
+            - independent Reality Verifier completes under the read-only boundary and returns PASS for the frozen claims;
+            - no required evidence is UNKNOWN/BLOCKED.
+
+            End your FINAL message with these exact five lines and no text after them:
+            SKILL_SECURITY_GATE_LOADED=PASS|FAIL|BLOCKED
+            DEVILS_COUNTER_SEQUENCE=PASS|FAIL|BLOCKED
+            REALITY_VERIFIER=PASS|FAIL|BLOCKED
+            TECHNICAL_NON_MUTATION=READ_ONLY_PROFILE|FAIL|BLOCKED
+            ULTIMATE_LOOP_RUNTIME_DOGFOOD=PASS|FAIL|BLOCKED
+
+  contract-check:
+    needs: runtime-dogfood
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require full runtime PASS contract
+        if: ${{ needs.runtime-dogfood.result == 'success' && contains(needs.runtime-dogfood.outputs.final_message, 'SKILL_SECURITY_GATE_LOADED=PASS') && contains(needs.runtime-dogfood.outputs.final_message, 'DEVILS_COUNTER_SEQUENCE=PASS') && contains(needs.runtime-dogfood.outputs.final_message, 'REALITY_VERIFIER=PASS') && contains(needs.runtime-dogfood.outputs.final_message, 'TECHNICAL_NON_MUTATION=READ_ONLY_PROFILE') && contains(needs.runtime-dogfood.outputs.final_message, 'ULTIMATE_LOOP_RUNTIME_DOGFOOD=PASS') }}
+        run: echo RUNTIME_DOGFOOD_CONTRACT_PASS
+
+      - name: Fail closed when runtime evidence is incomplete
+        if: ${{ !(needs.runtime-dogfood.result == 'success' && contains(needs.runtime-dogfood.outputs.final_message, 'SKILL_SECURITY_GATE_LOADED=PASS') && contains(needs.runtime-dogfood.outputs.final_message, 'DEVILS_COUNTER_SEQUENCE=PASS') && contains(needs.runtime-dogfood.outputs.final_message, 'REALITY_VERIFIER=PASS') && contains(needs.runtime-dogfood.outputs.final_message, 'TECHNICAL_NON_MUTATION=READ_ONLY_PROFILE') && contains(needs.runtime-dogfood.outputs.final_message, 'ULTIMATE_LOOP_RUNTIME_DOGFOOD=PASS')) }}
+        run: |
+          echo RUNTIME_DOGFOOD_CONTRACT_BLOCKED
+          exit 1
