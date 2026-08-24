@@ -8,6 +8,12 @@ on:
     branches:
       - main
     types: [opened, synchronize, reopened]
+    paths:
+      - 'SECURITY_RELEASE_GATE.md'
+      - 'METHOD.md'
+      - 'AGENTS.md'
+      - '.agents/skills/ultimate-loop/SKILL.md'
+      - '.github/workflows/security-release-gate-runtime-dogfood.yml'
   workflow_dispatch:
 
 permissions:
@@ -15,6 +21,12 @@ permissions:
 
 jobs:
   runtime-dogfood:
+    # Temporary candidate-only harness. If this file ever lands on main, unrelated
+    # PRs must not invoke the paid Codex action or create permanent review bureaucracy.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'push' ||
+      github.head_ref == 'feature/security-release-gate-20260825'
     runs-on: ubuntu-latest
     outputs:
       final_message: ${{ steps.codex.outputs.final-message }}
@@ -30,8 +42,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          echo "DOGFOOD_HEAD=$(git rev-parse HEAD)"
-          echo "DOGFOOD_TREE=$(git rev-parse HEAD^{tree})"
+          head_sha="$(git rev-parse HEAD)"
+          tree_sha="$(git rev-parse HEAD^{tree})"
+          echo "DOGFOOD_HEAD=$head_sha"
+          echo "DOGFOOD_TREE=$tree_sha"
+          echo "DOGFOOD_EXPECTED_HEAD=$head_sha" >> "$GITHUB_ENV"
+          echo "DOGFOOD_EXPECTED_TREE=$tree_sha" >> "$GITHUB_ENV"
           test -z "$(git status --porcelain=v1 --untracked-files=all)"
           grep -q '^name: ultimate-loop$' .agents/skills/ultimate-loop/SKILL.md
           grep -q 'SECURITY_RELEASE_GATE.md' .agents/skills/ultimate-loop/SKILL.md
@@ -45,6 +61,25 @@ jobs:
           permission-profile: ":read-only"
           safety-strategy: drop-sudo
           effort: high
+          output-schema: |
+            {
+              "type": "object",
+              "properties": {
+                "skill_security_gate_loaded": {"type": "string", "enum": ["PASS", "FAIL", "BLOCKED"]},
+                "devils_counter_sequence": {"type": "string", "enum": ["PASS", "FAIL", "BLOCKED"]},
+                "reality_verifier": {"type": "string", "enum": ["PASS", "FAIL", "BLOCKED"]},
+                "technical_non_mutation": {"type": "string", "enum": ["READ_ONLY_PROFILE", "FAIL", "BLOCKED"]},
+                "ultimate_loop_runtime_dogfood": {"type": "string", "enum": ["PASS", "FAIL", "BLOCKED"]}
+              },
+              "required": [
+                "skill_security_gate_loaded",
+                "devils_counter_sequence",
+                "reality_verifier",
+                "technical_non_mutation",
+                "ultimate_loop_runtime_dogfood"
+              ],
+              "additionalProperties": false
+            }
           prompt: |
             /goal
 
@@ -71,24 +106,57 @@ jobs:
             - independent Reality Verifier completes under the read-only boundary and returns PASS for the frozen claims;
             - no required evidence is UNKNOWN/BLOCKED.
 
-            End your FINAL message with these exact five lines and no text after them:
-            SKILL_SECURITY_GATE_LOADED=PASS|FAIL|BLOCKED
-            DEVILS_COUNTER_SEQUENCE=PASS|FAIL|BLOCKED
-            REALITY_VERIFIER=PASS|FAIL|BLOCKED
-            TECHNICAL_NON_MUTATION=READ_ONLY_PROFILE|FAIL|BLOCKED
-            ULTIMATE_LOOP_RUNTIME_DOGFOOD=PASS|FAIL|BLOCKED
+            Return only the structured result required by the output schema. Select exactly one allowed value for every field. Do not echo enum alternatives.
+
+      - name: Verify candidate remained unchanged
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$DOGFOOD_EXPECTED_HEAD"
+          test "$(git rev-parse HEAD^{tree})" = "$DOGFOOD_EXPECTED_TREE"
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+          echo OBSERVED_WORKTREE_NON_MUTATION_PASS
 
   contract-check:
     needs: runtime-dogfood
     if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
-      - name: Require full runtime PASS contract
-        if: ${{ needs.runtime-dogfood.result == 'success' && contains(needs.runtime-dogfood.outputs.final_message, 'SKILL_SECURITY_GATE_LOADED=PASS') && contains(needs.runtime-dogfood.outputs.final_message, 'DEVILS_COUNTER_SEQUENCE=PASS') && contains(needs.runtime-dogfood.outputs.final_message, 'REALITY_VERIFIER=PASS') && contains(needs.runtime-dogfood.outputs.final_message, 'TECHNICAL_NON_MUTATION=READ_ONLY_PROFILE') && contains(needs.runtime-dogfood.outputs.final_message, 'ULTIMATE_LOOP_RUNTIME_DOGFOOD=PASS') }}
-        run: echo RUNTIME_DOGFOOD_CONTRACT_PASS
-
-      - name: Fail closed when runtime evidence is incomplete
-        if: ${{ !(needs.runtime-dogfood.result == 'success' && contains(needs.runtime-dogfood.outputs.final_message, 'SKILL_SECURITY_GATE_LOADED=PASS') && contains(needs.runtime-dogfood.outputs.final_message, 'DEVILS_COUNTER_SEQUENCE=PASS') && contains(needs.runtime-dogfood.outputs.final_message, 'REALITY_VERIFIER=PASS') && contains(needs.runtime-dogfood.outputs.final_message, 'TECHNICAL_NON_MUTATION=READ_ONLY_PROFILE') && contains(needs.runtime-dogfood.outputs.final_message, 'ULTIMATE_LOOP_RUNTIME_DOGFOOD=PASS')) }}
+      - name: Validate exact structured PASS contract
+        env:
+          RUNTIME_RESULT: ${{ needs.runtime-dogfood.result }}
+          CODEX_FINAL_MESSAGE: ${{ needs.runtime-dogfood.outputs.final_message }}
+        shell: bash
         run: |
-          echo RUNTIME_DOGFOOD_CONTRACT_BLOCKED
-          exit 1
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import os
+          import sys
+
+          if os.environ.get("RUNTIME_RESULT") != "success":
+              print("RUNTIME_DOGFOOD_CONTRACT_BLOCKED: runtime job did not succeed")
+              sys.exit(1)
+
+          raw = os.environ.get("CODEX_FINAL_MESSAGE", "")
+          try:
+              result = json.loads(raw)
+          except Exception as exc:
+              print(f"RUNTIME_DOGFOOD_CONTRACT_BLOCKED: invalid structured output: {exc}")
+              sys.exit(1)
+
+          expected = {
+              "skill_security_gate_loaded": "PASS",
+              "devils_counter_sequence": "PASS",
+              "reality_verifier": "PASS",
+              "technical_non_mutation": "READ_ONLY_PROFILE",
+              "ultimate_loop_runtime_dogfood": "PASS",
+          }
+          if result != expected:
+              print("RUNTIME_DOGFOOD_CONTRACT_BLOCKED: exact PASS object not returned")
+              print(json.dumps(result, sort_keys=True))
+              sys.exit(1)
+
+          print("RUNTIME_DOGFOOD_CONTRACT_PASS")
+          PY
