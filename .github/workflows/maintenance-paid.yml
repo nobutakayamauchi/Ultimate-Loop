@@ -89,7 +89,7 @@ jobs:
           grep -q 'MAINTENANCE_GATE.md' .agents/skills/ultimate-loop/SKILL.md
           grep -q 'PAYMENT_COMPLETED != SPEND_AUTHORITY' MAINTENANCE_GATE.md
 
-          issue_number="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "$MAINTENANCE_ID in:title" --json number,title --jq --arg id "$MAINTENANCE_ID" '.[] | select(.title | contains($id)) | .number' | head -n1)"
+          issue_number="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "$MAINTENANCE_ID in:title" --json number,title --jq '.[] | select(.title | contains(env.MAINTENANCE_ID)) | .number' | head -n1)"
           test -n "$issue_number"
 
           issue_body="$(gh issue view "$issue_number" --repo "$GITHUB_REPOSITORY" --json body --jq '.body')"
@@ -141,7 +141,7 @@ jobs:
           echo "EXPECTED_TREE=$(git rev-parse HEAD^{tree})" >> "$GITHUB_ENV"
           echo "MAINTENANCE_SPEND_BOUNDARY_ATTESTED_USD=$HARD_CAP_USD"
 
-      - name: Atomically consume the one-attempt envelope
+      - name: Consume the one-attempt envelope
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -254,8 +254,6 @@ jobs:
           MAINTENANCE_ID: ${{ inputs.maintenance_id }}
         run: |
           set -euo pipefail
-          export CONTRACT_RESULT=BLOCKED
-          export CONTRACT_DETAIL="paid maintenance job did not return exact PASS"
 
           python - <<'PY'
           import json
@@ -289,12 +287,11 @@ jobs:
               json.dumps(result, sort_keys=True) if result is not None else "no valid structured result",
               encoding="utf-8",
           )
-          if not passed:
-              raise SystemExit(1)
           PY
 
-          result="$(cat contract-result.txt 2>/dev/null || echo MAINTENANCE_BLOCKED)"
-          detail="$(cat contract-detail.txt 2>/dev/null || echo 'no exact structured PASS')"
+          result="$(cat contract-result.txt)"
+          detail="$(cat contract-detail.txt)"
           if [ -n "$ISSUE_NUMBER" ]; then
             gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body "PAID_ATTEMPT_RESULT candidate_sha=$CANDIDATE_SHA maintenance_id=$MAINTENANCE_ID result=$result run_id=$GITHUB_RUN_ID\n\nStructured evidence: \`$detail\`\n\nNo retry is authorized by this result."
           fi
+          test "$result" = "MAINTENANCE_PASS"
