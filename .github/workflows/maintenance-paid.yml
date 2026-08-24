@@ -1,0 +1,327 @@
+name: Ultimate Loop paid maintenance
+
+on:
+  workflow_dispatch:
+    inputs:
+      maintenance_id:
+        description: 'Maintenance ID from the WATCH issue (for example MAINT-PR-9)'
+        required: true
+        type: string
+      base_sha:
+        description: 'Exact base SHA from the WATCH packet'
+        required: true
+        type: string
+      candidate_sha:
+        description: 'Exact candidate SHA from the WATCH packet'
+        required: true
+        type: string
+      max_budget_usd:
+        description: 'Authorized maximum maintenance envelope'
+        required: true
+        default: '5.00'
+        type: choice
+        options:
+          - '5.00'
+      model:
+        description: 'Allowed maintenance model'
+        required: true
+        default: 'gpt-5.6-sol'
+        type: choice
+        options:
+          - 'gpt-5.6-sol'
+      reasoning_effort:
+        description: 'Allowed reasoning effort'
+        required: true
+        default: 'high'
+        type: choice
+        options:
+          - 'high'
+      authorization_phrase:
+        description: 'Type AUTHORIZE_PAID_MAINTENANCE exactly'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: paid-maintenance-${{ inputs.candidate_sha }}
+  cancel-in-progress: false
+
+jobs:
+  authorization-preflight:
+    runs-on: ubuntu-latest
+    outputs:
+      issue_number: ${{ steps.preflight.outputs.issue_number }}
+      authorization_expiry: ${{ steps.preflight.outputs.authorization_expiry }}
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.candidate_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate exact human authorization packet
+        id: preflight
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MAINTENANCE_ID: ${{ inputs.maintenance_id }}
+          BASE_SHA: ${{ inputs.base_sha }}
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
+          MAX_BUDGET_USD: ${{ inputs.max_budget_usd }}
+          MODEL: ${{ inputs.model }}
+          EFFORT: ${{ inputs.reasoning_effort }}
+          AUTHORIZATION_PHRASE: ${{ inputs.authorization_phrase }}
+          ACTOR: ${{ github.actor }}
+          REPOSITORY_OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+
+          # Current V1 authorization profile: the repository owner must perform the
+          # dispatch personally. Future multi-human authorization must be an explicit
+          # policy change rather than an accidental collaborator privilege expansion.
+          test "$ACTOR" = "$REPOSITORY_OWNER"
+          test "$AUTHORIZATION_PHRASE" = "AUTHORIZE_PAID_MAINTENANCE"
+          test "$MAX_BUDGET_USD" = "5.00"
+          test "$MODEL" = "gpt-5.6-sol"
+          test "$EFFORT" = "high"
+          test "$BASE_SHA" != "$CANDIDATE_SHA"
+          test "$(git rev-parse HEAD)" = "$CANDIDATE_SHA"
+          git cat-file -e "${BASE_SHA}^{commit}"
+          git cat-file -e "${CANDIDATE_SHA}^{commit}"
+          git merge-base --is-ancestor "$BASE_SHA" "$CANDIDATE_SHA"
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+          grep -q 'MAINTENANCE_GATE.md' .agents/skills/ultimate-loop/SKILL.md
+          grep -q 'PAYMENT_COMPLETED != SPEND_AUTHORITY' MAINTENANCE_GATE.md
+
+          issue_number="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "$MAINTENANCE_ID in:title" --json number,title --jq '.[] | select(.title | contains(env.MAINTENANCE_ID)) | .number' | head -n1)"
+          test -n "$issue_number"
+
+          issue_body="$(gh issue view "$issue_number" --repo "$GITHUB_REPOSITORY" --json body --jq '.body')"
+          printf '%s' "$issue_body" | grep -Fq "$BASE_SHA"
+          printf '%s' "$issue_body" | grep -Fq "$CANDIDATE_SHA"
+          printf '%s' "$issue_body" | grep -Fq 'PAID_MAINTENANCE_RECOMMENDED'
+          printf '%s' "$issue_body" | grep -Fq 'USD 5.00'
+          printf '%s' "$issue_body" | grep -Fq 'gpt-5.6-sol / high'
+
+          authorization_expiry="$(printf '%s\n' "$issue_body" | sed -n 's/^| AUTHORIZATION_EXPIRY | `\([^`]*\)` |$/\1/p' | head -n1)"
+          test -n "$authorization_expiry"
+          AUTHORIZATION_EXPIRY="$authorization_expiry" python - <<'PY'
+          import os
+          from datetime import datetime, timezone
+
+          raw = os.environ["AUTHORIZATION_EXPIRY"]
+          try:
+              expiry = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+          except ValueError as exc:
+              raise SystemExit(f"invalid authorization expiry: {exc}")
+          if expiry.tzinfo is None:
+              raise SystemExit("authorization expiry must be timezone-aware")
+          if expiry <= datetime.now(timezone.utc):
+              raise SystemExit("maintenance authorization packet is expired")
+          PY
+
+          prior_comments="$(gh issue view "$issue_number" --repo "$GITHUB_REPOSITORY" --json comments --jq '.comments[].body' || true)"
+          if printf '%s\n' "$prior_comments" | grep -Fq "PAID_ATTEMPT_STARTED candidate_sha=$CANDIDATE_SHA"; then
+            echo "PAID_MAINTENANCE_BLOCKED: a paid attempt is already recorded for this exact candidate"
+            exit 1
+          fi
+
+          echo "AUTHORIZED_CANDIDATE_HEAD=$(git rev-parse HEAD)"
+          echo "AUTHORIZED_CANDIDATE_TREE=$(git rev-parse HEAD^{tree})"
+          echo "issue_number=$issue_number" >> "$GITHUB_OUTPUT"
+          echo "authorization_expiry=$authorization_expiry" >> "$GITHUB_OUTPUT"
+
+  paid-maintenance:
+    needs: authorization-preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    environment: paid-maintenance
+    outputs:
+      final_message: ${{ steps.codex.outputs.final-message }}
+    steps:
+      - name: Checkout exact authorized candidate
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.candidate_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify protected maintenance boundary
+        id: boundary
+        shell: bash
+        env:
+          MAINTENANCE_API_KEY: ${{ secrets.ULTIMATE_LOOP_MAINTENANCE_OPENAI_API_KEY }}
+          HARD_CAP_USD: ${{ vars.MAINTENANCE_HARD_CAP_USD }}
+          PROJECT_BOUNDARY_VERIFIED: ${{ vars.MAINTENANCE_PROJECT_BOUNDARY_VERIFIED }}
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
+          MAX_BUDGET_USD: ${{ inputs.max_budget_usd }}
+        run: |
+          set -euo pipefail
+          test -n "$MAINTENANCE_API_KEY"
+          test "$HARD_CAP_USD" = "$MAX_BUDGET_USD"
+          test "$PROJECT_BOUNDARY_VERIFIED" = "true"
+          test "$(git rev-parse HEAD)" = "$CANDIDATE_SHA"
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+          echo "EXPECTED_HEAD=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          echo "EXPECTED_TREE=$(git rev-parse HEAD^{tree})" >> "$GITHUB_ENV"
+          echo "MAINTENANCE_SPEND_BOUNDARY_ATTESTED_USD=$HARD_CAP_USD"
+
+      - name: Consume the one-attempt envelope
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ needs.authorization-preflight.outputs.issue_number }}
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
+          MAINTENANCE_ID: ${{ inputs.maintenance_id }}
+        run: |
+          set -euo pipefail
+          prior_comments="$(gh issue view "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --json comments --jq '.comments[].body' || true)"
+          if printf '%s\n' "$prior_comments" | grep -Fq "PAID_ATTEMPT_STARTED candidate_sha=$CANDIDATE_SHA"; then
+            echo "PAID_MAINTENANCE_BLOCKED: candidate attempt already consumed"
+            exit 1
+          fi
+          gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body "PAID_ATTEMPT_STARTED candidate_sha=$CANDIDATE_SHA maintenance_id=$MAINTENANCE_ID run_id=$GITHUB_RUN_ID. No automatic retry is authorized."
+
+      - name: Run one paid Sol maintenance inspection
+        id: codex
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.ULTIMATE_LOOP_MAINTENANCE_OPENAI_API_KEY }}
+          model: ${{ inputs.model }}
+          effort: ${{ inputs.reasoning_effort }}
+          permission-profile: ':read-only'
+          safety-strategy: drop-sudo
+          output-schema: |
+            {
+              "type": "object",
+              "properties": {
+                "maintenance_gate_loaded": {"type": "string", "enum": ["PASS", "FAIL", "BLOCKED"]},
+                "exact_candidate_binding": {"type": "string", "enum": ["PASS", "FAIL", "BLOCKED"]},
+                "devils_counter_sequence": {"type": "string", "enum": ["PASS", "FAIL", "BLOCKED"]},
+                "reality_verifier": {"type": "string", "enum": ["PASS", "FAIL", "BLOCKED"]},
+                "spend_authority_boundary": {"type": "string", "enum": ["PASS", "FAIL", "BLOCKED"]},
+                "technical_non_mutation": {"type": "string", "enum": ["READ_ONLY_PROFILE", "FAIL", "BLOCKED"]},
+                "paid_attempt_policy": {"type": "string", "enum": ["PASS", "FAIL", "BLOCKED"]},
+                "maintenance_verdict": {"type": "string", "enum": ["MAINTENANCE_PASS", "MAINTENANCE_FAIL", "MAINTENANCE_BLOCKED", "MAINTENANCE_EVIDENCE_STALE"]}
+              },
+              "required": [
+                "maintenance_gate_loaded",
+                "exact_candidate_binding",
+                "devils_counter_sequence",
+                "reality_verifier",
+                "spend_authority_boundary",
+                "technical_non_mutation",
+                "paid_attempt_policy",
+                "maintenance_verdict"
+              ],
+              "additionalProperties": false
+            }
+          prompt: |
+            /goal
+
+            Perform the single authorized paid maintenance INSPECTION of the CURRENT checked-out Ultimate Loop candidate. Evaluation only: do not edit, generate, delete, stage, commit, push, repair, or retry anything.
+
+            Authorization packet:
+            - MAINTENANCE_ID: ${{ inputs.maintenance_id }}
+            - EXACT_BASE_SHA: ${{ inputs.base_sha }}
+            - EXACT_CANDIDATE_SHA: ${{ inputs.candidate_sha }}
+            - MAX_BUDGET_USD: ${{ inputs.max_budget_usd }}
+            - MODEL: ${{ inputs.model }}
+            - REASONING_EFFORT: ${{ inputs.reasoning_effort }}
+            - MAX_PAID_ATTEMPTS: 1
+            - AUTHORIZATION_EXPIRY: ${{ needs.authorization-preflight.outputs.authorization_expiry }}
+            - provider/project boundary attested by protected-environment preflight before this step.
+
+            Frozen outcome:
+            Prove or reject that this candidate correctly adds the Ultimate Loop Maintenance Gate without creating a fourth destruction loop, without giving WATCH paid credentials or spend authority, without treating payment/account credit as authorization, and without permitting automatic paid retry or self-promotion.
+
+            Required procedure:
+            1. Establish exact git HEAD/tree identity yourself and inspect METHOD.md, AGENTS.md, MAINTENANCE_GATE.md, MAINTENANCE_GATE_DA_2026-08-25.md, .agents/skills/ultimate-loop/SKILL.md, and both maintenance workflow files.
+            2. Confirm the updated skill actually routes Ultimate Loop self-maintenance through MAINTENANCE_GATE.md. Do not infer this from README or filenames.
+            3. Confirm WATCH has no paid-provider secret, runs pull-request detection from trusted base/default-branch authority without checking out candidate code, and cannot invoke the paid action automatically.
+            4. Confirm the paid workflow is manual-only in normal operation, exact-candidate-bound, owner-dispatched under the current V1 profile, typed-human-authorized, unexpired, base/candidate lineage-bound, model/effort bounded, one-attempt-by-default, and uses the maintenance-specific secret under the paid-maintenance environment.
+            5. Treat the workflow's declared USD value or environment variable as an attested precondition, not magical proof of provider billing. Verify the method explicitly preserves that distinction and fails closed when the required technical spend-bound evidence is absent.
+            6. Sequentially spawn the custom `devils-advocate` role through the runtime's explicit agent_type/role field. Require it to attack fourth-loop creep, payment-as-authority, secret leakage, notification false certainty, budget false certainty, auto-retry, candidate drift, trusted-WATCH bypass, expired authorization, and verifier self-approval.
+            7. Only after DA returns, spawn `counter-advocate` explicitly and require it to attack the DA findings, rescuing only the smallest responsibility that survives.
+            8. Only after both are complete, spawn `reality-verifier` explicitly in a clean/non-inherited context. Give it the frozen claims and repository evidence paths. It must independently verify the current candidate identity, actual skill routing, role sequence, authority boundaries, one-attempt policy, authorization expiry, fail-closed UNKNOWN/BLOCKED behavior, and no fourth loop/permanent maintenance-agent bureaucracy.
+            9. The Reality Verifier must not repair anything. A task label resembling a role is not evidence that the custom role loaded.
+            10. Treat this GitHub Action's externally enforced `:read-only` permission profile as the technical non-mutation boundary. Verify before/after repository state as supporting evidence, not as a substitute for the permission boundary.
+            11. Preserve FAIL/BLOCKED/stale evidence. Do not retry inside this run.
+
+            PASS requires all required custom roles to actually load in sequence, the independent Reality Verifier to PASS the frozen claims, no required evidence to remain UNKNOWN/BLOCKED, and the current exact candidate to remain unchanged.
+
+            Return only the structured object required by the output schema. Select exactly one allowed value for every field and do not echo enum alternatives.
+
+      - name: Verify exact candidate remained unchanged
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          test "$(git rev-parse HEAD^{tree})" = "$EXPECTED_TREE"
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+          echo OBSERVED_WORKTREE_NON_MUTATION_PASS
+
+  contract-check:
+    needs: [authorization-preflight, paid-maintenance]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Validate exact terminal contract and record evidence
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ needs.authorization-preflight.outputs.issue_number }}
+          PAID_JOB_RESULT: ${{ needs.paid-maintenance.result }}
+          CODEX_FINAL_MESSAGE: ${{ needs.paid-maintenance.outputs.final_message }}
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
+          MAINTENANCE_ID: ${{ inputs.maintenance_id }}
+        run: |
+          set -euo pipefail
+
+          python - <<'PY'
+          import json
+          import os
+          import pathlib
+
+          expected = {
+              "maintenance_gate_loaded": "PASS",
+              "exact_candidate_binding": "PASS",
+              "devils_counter_sequence": "PASS",
+              "reality_verifier": "PASS",
+              "spend_authority_boundary": "PASS",
+              "technical_non_mutation": "READ_ONLY_PROFILE",
+              "paid_attempt_policy": "PASS",
+              "maintenance_verdict": "MAINTENANCE_PASS",
+          }
+
+          result = None
+          if os.environ.get("PAID_JOB_RESULT") == "success":
+              try:
+                  result = json.loads(os.environ.get("CODEX_FINAL_MESSAGE", ""))
+              except Exception:
+                  result = None
+
+          passed = result == expected
+          pathlib.Path("contract-result.txt").write_text(
+              "MAINTENANCE_PASS" if passed else "MAINTENANCE_BLOCKED",
+              encoding="utf-8",
+          )
+          pathlib.Path("contract-detail.txt").write_text(
+              json.dumps(result, sort_keys=True) if result is not None else "no valid structured result",
+              encoding="utf-8",
+          )
+          PY
+
+          result="$(cat contract-result.txt)"
+          detail="$(cat contract-detail.txt)"
+          if [ -n "$ISSUE_NUMBER" ]; then
+            gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body "PAID_ATTEMPT_RESULT candidate_sha=$CANDIDATE_SHA maintenance_id=$MAINTENANCE_ID result=$result run_id=$GITHUB_RUN_ID\n\nStructured evidence: \`$detail\`\n\nNo retry is authorized by this result."
+          fi
+          test "$result" = "MAINTENANCE_PASS"

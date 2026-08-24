@@ -28,6 +28,37 @@ Write down, in the working notes or visible response, the minimum frozen contrac
 
 If the user already supplied these, reuse them instead of asking again.
 
+## Conditional self-maintenance gate — when Ultimate Loop is the subject
+
+If the frozen subject materially changes or challenges Ultimate Loop itself — including `METHOD.md`, `/goal` routing, agent/role contracts, evidence semantics, provider/runtime assumptions, paid verification controls, or another method-level authority boundary — load and apply `MAINTENANCE_GATE.md`.
+
+This gate is a WATCH/self-evolution control profile, not a fourth destruction loop.
+
+Before any paid Runtime/model maintenance execution:
+
+1. establish the exact candidate identity;
+2. classify the maintenance signal using free/current evidence first;
+3. preserve `WATCH_ONLY / MAINTENANCE_REVIEW_REQUIRED / PAID_MAINTENANCE_RECOMMENDED / BLOCKED_UNKNOWN` explicitly;
+4. notify the human for every state except `WATCH_ONLY` and state that no paid work has started;
+5. require explicit human authorization bound to the maintenance ID, exact candidate SHA, maximum budget, model/runtime allowlist, maximum paid attempts, and expiry;
+6. require current evidence of a provider/equivalent technical spend boundary when the authorized envelope depends on one;
+7. keep the detector separate from paid credentials and paid execution;
+8. default to one paid attempt per candidate, with no automatic retry or top-up;
+9. treat payment, API-key presence, existing account credit, and provider budget alerts as resource/evidence signals, never spend authority;
+10. after a paid attempt, stop on PASS, FAIL, BLOCKED, stale evidence, or budget exhaustion. Any new paid attempt requires a new candidate/authorization decision.
+
+Core boundaries:
+
+```text
+PAYMENT_COMPLETED != SPEND_AUTHORITY
+API_KEY_PRESENT != SPEND_AUTHORITY
+HUMAN_AUTHORIZATION != PROMOTION_AUTHORITY
+FAILED_PAID_ATTEMPT != PERMISSION_TO_RETRY
+OLD_MAINTENANCE_PASS != CURRENT_CANDIDATE_PASS
+```
+
+If the paid path is not explicitly authorized or its required technical budget/permission boundary is unproven, return `BLOCKED`; do not improvise a paid workaround.
+
 ## Phase 1 — Current discovery
 
 Refresh the current implementation landscape before claiming superiority. Prefer official docs, current repository state, package/service metadata, and direct runtime evidence.
@@ -79,6 +110,8 @@ When parallel work is useful, split only independent workstreams. Avoid multiple
 
 If the surviving change targets `.agents/` or `.codex/` and the current Codex client protects those paths, treat the refusal as an explicit self-modification permission boundary. Do not jump to unrestricted permissions merely to continue. Use only a separately authorized write mechanism or explicit approval, then verify the newly loaded configuration in a fresh context when required.
 
+If implementation of Ultimate Loop itself would invoke a paid provider/runtime, do not cross that boundary from this phase merely because credentials or account credit exist. The Conditional self-maintenance gate controls paid authority.
+
 ## Phase 5 — Destruction and verification
 
 Run applicable tests and destructive/replay checks under explicit bounds.
@@ -105,6 +138,8 @@ For a material specialist verdict where independence matters:
 
 A clean before/after fingerprint is useful evidence but does not alone prove the process lacked write capability. A contaminated or technically unbounded verifier result is not promotion evidence.
 
+When Ultimate Loop itself is under paid maintenance, the final Reality Verifier must additionally verify the exact authorization/candidate identity, required role ordering, paid-attempt bound, current budget-bound evidence, absence of unapproved retry, and that budget/payment availability was never treated as authority. The verifier must not repair the candidate.
+
 For deployed/runtime surfaces, establish deployment identity before treating probes as evidence. After a fix, re-establish identity and replay the exact failed probe plus regression checks.
 
 ## Phase 6 — Exposure / publication
@@ -124,6 +159,7 @@ Preserve material transitions when useful:
 - changes/commits/PRs;
 - deployment identity and runtime probes;
 - human decisions/overrides;
+- maintenance IDs, candidate identities, authorization envelopes, paid-attempt results, and budget-bound evidence when self-maintenance is material;
 - UNKNOWN/CONFLICT/external-evidence boundaries.
 
 Do not claim hidden chain-of-thought as evidence. TRACE is an observer, never governor.
@@ -140,6 +176,7 @@ Report:
 - implementation changes;
 - verification evidence;
 - unresolved UNKNOWN/CONFLICT or blocked gate;
+- when self-maintenance is material, whether paid maintenance is WATCH_ONLY / awaiting human authorization / authorized / PASS / FAIL / BLOCKED / stale / budget-exhausted;
 - next material trigger for WATCH/DARWIN.
 
 Do not invent another task just to keep the loop spinning. `STABLE` means stable-by-default until a material trigger appears.

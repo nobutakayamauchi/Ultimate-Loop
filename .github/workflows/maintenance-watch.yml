@@ -1,0 +1,184 @@
+name: Ultimate Loop maintenance watch
+
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'METHOD.md'
+      - 'AGENTS.md'
+      - 'MAINTENANCE_GATE.md'
+      - 'SUPERSESSION_RULE.md'
+      - 'TRACE_OBSERVATION_LAYER.md'
+      - 'EXTERNAL_CAPABILITY_FEED.md'
+      - 'EXPOSURE_GATE.md'
+      - 'SECURITY_RELEASE_GATE.md'
+      - '.agents/skills/ultimate-loop/**'
+      - '.codex/**'
+      - '.github/workflows/maintenance-watch.yml'
+      - '.github/workflows/maintenance-paid.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'METHOD.md'
+      - 'AGENTS.md'
+      - 'MAINTENANCE_GATE.md'
+      - 'SUPERSESSION_RULE.md'
+      - 'TRACE_OBSERVATION_LAYER.md'
+      - 'EXTERNAL_CAPABILITY_FEED.md'
+      - 'EXPOSURE_GATE.md'
+      - 'SECURITY_RELEASE_GATE.md'
+      - '.agents/skills/ultimate-loop/**'
+      - '.codex/**'
+      - '.github/workflows/maintenance-watch.yml'
+      - '.github/workflows/maintenance-paid.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: write
+
+jobs:
+  detect-and-notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout trusted base/default branch only
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Build maintenance packet without executing candidate code
+        id: packet
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PUSH_BASE_SHA: ${{ github.event.before }}
+          PUSH_HEAD_SHA: ${{ github.sha }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+
+          if [ "$EVENT_NAME" = "pull_request_target" ]; then
+            base_sha="$PR_BASE_SHA"
+            candidate_sha="$PR_HEAD_SHA"
+            maintenance_id="MAINT-PR-${PR_NUMBER}"
+            source_ref="PR #${PR_NUMBER}"
+            # Critical trust boundary: inspect changed-path metadata via the GitHub API.
+            # Never checkout, source, or execute the PR candidate in this privileged WATCH job.
+            changed="$(gh api --paginate "repos/${REPOSITORY}/pulls/${PR_NUMBER}/files?per_page=100" --jq '.[].filename')"
+          elif [ "$EVENT_NAME" = "push" ]; then
+            base_sha="$PUSH_BASE_SHA"
+            candidate_sha="$PUSH_HEAD_SHA"
+            maintenance_id="MAINT-PUSH-${candidate_sha:0:12}"
+            source_ref="direct main push"
+            git fetch --no-tags --depth=2 origin "$candidate_sha" "$base_sha" >/dev/null 2>&1 || true
+            changed="$(git diff --name-only "$base_sha" "$candidate_sha" || true)"
+          else
+            candidate_sha="$(git rev-parse HEAD)"
+            base_sha="$(git rev-parse HEAD^ 2>/dev/null || git rev-parse HEAD)"
+            maintenance_id="MAINT-MANUAL-${candidate_sha:0:12}"
+            source_ref="manual watch"
+            changed="$(git diff --name-only "$base_sha" "$candidate_sha" || true)"
+          fi
+
+          test -n "$base_sha"
+          test -n "$candidate_sha"
+          test "$base_sha" != "$candidate_sha" || [ "$EVENT_NAME" = "workflow_dispatch" ]
+
+          state="MAINTENANCE_REVIEW_REQUIRED"
+          trigger_class="T1_CANONICAL_METHOD_CHANGE"
+
+          if printf '%s\n' "$changed" | grep -Eq '^(METHOD\.md|AGENTS\.md|MAINTENANCE_GATE\.md|SUPERSESSION_RULE\.md|\.agents/skills/ultimate-loop/|\.codex/|\.github/workflows/maintenance-(watch|paid)\.yml)'; then
+            state="PAID_MAINTENANCE_RECOMMENDED"
+          fi
+
+          if printf '%s\n' "$changed" | grep -Eq '^(\.codex/|\.agents/skills/ultimate-loop/)'; then
+            trigger_class="T2_AGENT_OR_ROUTING_CHANGE"
+          elif printf '%s\n' "$changed" | grep -Eq '^\.github/workflows/maintenance-(watch|paid)\.yml$'; then
+            trigger_class="T7_COST_CONTROL_CHANGE"
+          elif printf '%s\n' "$changed" | grep -Eq '^(EXPOSURE_GATE\.md|SECURITY_RELEASE_GATE\.md)$'; then
+            trigger_class="T5_SECURITY_EXPOSURE_CHANGE"
+          fi
+
+          expiry="$(date -u -d '+7 days' '+%Y-%m-%dT%H:%M:%SZ')"
+          title="Ultimate Loop maintenance recommended — ${maintenance_id}"
+          body_file="$RUNNER_TEMP/maintenance-body.md"
+
+          {
+            echo "@nobutakayamauchi"
+            echo
+            echo "## Ultimate Loop Maintenance Packet"
+            echo
+            echo "**Nothing paid has started.** This trusted-base WATCH workflow has no paid-provider secret and cannot invoke the paid maintenance Runtime."
+            echo
+            echo "| Field | Value |"
+            echo "|---|---|"
+            echo "| MAINTENANCE_ID | \`${maintenance_id}\` |"
+            echo "| REPOSITORY | \`${REPOSITORY}\` |"
+            echo "| EXACT_BASE_SHA | \`${base_sha}\` |"
+            echo "| EXACT_CANDIDATE_SHA | \`${candidate_sha}\` |"
+            echo "| SOURCE | ${source_ref} |"
+            echo "| TRIGGER_CLASS | \`${trigger_class}\` |"
+            echo "| STATE | \`${state}\` |"
+            echo "| RECOMMENDED_MAX_BUDGET | \`USD 5.00\` |"
+            echo "| RECOMMENDED_MODEL/RUNTIME | \`gpt-5.6-sol / high / Codex Action\` |"
+            echo "| AUTHORIZATION_EXPIRY | \`${expiry}\` |"
+            echo "| WATCH_EVIDENCE | ${RUN_URL} |"
+            echo
+            echo "### Trust boundary"
+            echo
+            if [ "$EVENT_NAME" = "pull_request_target" ]; then
+              echo "This WATCH run executed the workflow from the trusted base branch and inspected PR file metadata through the GitHub API. It did **not** checkout or execute the candidate SHA."
+            else
+              echo "This WATCH run inspected the trusted/default-branch repository state."
+            fi
+            echo
+            echo "### Why now"
+            echo
+            echo "A material Ultimate Loop method/control surface changed. WATCH is flagging the exact candidate for human review; this is not promotion authority."
+            echo
+            echo "### Changed paths"
+            echo
+            echo '```text'
+            printf '%s\n' "$changed"
+            echo '```'
+            echo
+            echo "### Recommended action"
+            echo
+            if [ "$state" = "PAID_MAINTENANCE_RECOMMENDED" ]; then
+              echo "Review this packet. If the change should proceed to paid Reality verification, configure/confirm the dedicated maintenance spend boundary and manually dispatch \`maintenance-paid\` for this exact base/candidate SHA. Funding the API account alone does not authorize execution."
+            else
+              echo "Review this packet first. Escalate to paid maintenance only if the semantic impact actually requires Runtime/Reality evidence."
+            fi
+            echo
+            echo "Hard boundaries: \`PAYMENT_COMPLETED != SPEND_AUTHORITY\`; \`EMAIL_SENT != HUMAN_AUTHORIZATION\`; \`OLD_MAINTENANCE_PASS != CURRENT_CANDIDATE_PASS\`."
+          } > "$body_file"
+
+          echo "maintenance_id=$maintenance_id" >> "$GITHUB_OUTPUT"
+          echo "title=$title" >> "$GITHUB_OUTPUT"
+          echo "body_file=$body_file" >> "$GITHUB_OUTPUT"
+
+      - name: Create or update maintenance issue
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: ${{ steps.packet.outputs.title }}
+          BODY_FILE: ${{ steps.packet.outputs.body_file }}
+        run: |
+          set -euo pipefail
+          existing="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"$TITLE\" in:title" --json number,title --jq '.[] | select(.title == env.TITLE) | .number' | head -n1)"
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --repo "$GITHUB_REPOSITORY" --body-file "$BODY_FILE"
+            echo "UPDATED_MAINTENANCE_ISSUE=$existing"
+          else
+            url="$(gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --body-file "$BODY_FILE")"
+            echo "CREATED_MAINTENANCE_ISSUE=$url"
+          fi

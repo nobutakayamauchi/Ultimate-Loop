@@ -36,6 +36,7 @@ The protected subject is the **human-important outcome** — not the current imp
 | [**METHOD.md**](METHOD.md) | Canonical end-to-end method |
 | [**THREE_DESTRUCTIONS.md**](THREE_DESTRUCTIONS.md) | Raison d'être Destroy / METEOR / DARWIN |
 | [**EXPOSURE_GATE.md**](EXPOSURE_GATE.md) | Cross-cutting Human Gate for PUBLIC / SPLIT / PRIVATE publication boundaries |
+| [**MAINTENANCE_GATE.md**](MAINTENANCE_GATE.md) | Human/spend boundary for maintenance of Ultimate Loop itself |
 | [**EXTERNAL_CAPABILITY_FEED.md**](EXTERNAL_CAPABILITY_FEED.md) | Replaceable current-reality / challenger-supply layer for Gate 0 + WATCH/DARWIN |
 | [**TRACE_OBSERVATION_LAYER.md**](TRACE_OBSERVATION_LAYER.md) | Passive cross-cutting evidence observation and replay contract |
 | [**LINEAGE.md**](LINEAGE.md) | How WITNESS → Five Principles → RTS Evolution → Ultimate Loop happened |
@@ -146,6 +147,50 @@ The feed may reduce discovery latency, but a material superiority/replacement cl
 
 ---
 
+## Maintenance Gate — the leash on self-maintenance
+
+Ultimate Loop is allowed to notice that **Ultimate Loop itself** may need maintenance. It is not allowed to take paid Runtime authority merely because an API key, account credit, or budget exists.
+
+The V1 control path is deliberately asymmetric:
+
+```text
+FREE / DETERMINISTIC WATCH
+→ MATERIAL SELF-MAINTENANCE SIGNAL
+→ GITHUB MAINTENANCE RECORD + HUMAN NOTIFICATION
+→ NOTHING PAID STARTS
+→ HUMAN REVIEWS EXACT CANDIDATE
+→ HUMAN AUTHORIZES BUDGET + MODEL/RUNTIME + ONE PAID ATTEMPT
+→ MANUAL PAID SOL INSPECTION
+→ DEVIL'S ADVOCATE
+→ COUNTER-ADVOCATE
+→ INDEPENDENT REALITY VERIFIER
+→ PASS / FAIL / BLOCKED
+→ STOP
+```
+
+The WATCH side does not receive the paid-provider secret. Payment, existing credit, API-key presence, notification delivery, and a provider budget alert are all insufficient to authorize paid maintenance.
+
+```text
+PAYMENT_COMPLETED != SPEND_AUTHORITY
+API_KEY_PRESENT != SPEND_AUTHORITY
+EMAIL_SENT != HUMAN_AUTHORIZATION
+HUMAN_AUTHORIZATION != PROMOTION_AUTHORITY
+FAILED_PAID_ATTEMPT != PERMISSION_TO_RETRY
+```
+
+The current operating profile is **USD 5 maximum / `gpt-5.6-sol` / high reasoning / one paid attempt per exact candidate / no automatic retry or top-up**. Those values are replaceable operating choices, not permanent method invariants.
+
+A workflow saying "$5" is not proof of a hard billing cap. Paid execution stays blocked unless the required provider/project or equivalent technical spend boundary is current and evidenced, or the human explicitly authorizes a different bounded risk envelope.
+
+The paid path is an inspection gate, not an automatic self-repair factory. A failed candidate stops. Repair happens outside the paid verifier when possible, creates a new candidate identity, and requires a new human decision before another paid attempt.
+
+> **Ultimate Loop may notice that it needs maintenance. It may ask. It may not take the wallet.**
+
+→ [Maintenance Gate contract](MAINTENANCE_GATE.md)  
+→ [Design DA / Counter-DA](MAINTENANCE_GATE_DA_2026-08-25.md)
+
+---
+
 ## The Five Principles That Survived WITNESS
 
 WITNESS did **not** survive as a software platform. Its final necessity tests destroyed the need for a standing WITNESS implementation, while five semantic protections survived:
@@ -183,6 +228,10 @@ WISH / PROBLEM / EVENT / EXTERNAL CAPABILITY SIGNAL
 → DEPLOYMENT_VALIDATED / FIX_VALIDATED
 → STABLE CORE / MOVABLE FRAME
 → WATCH + EXTERNAL CAPABILITY FEED
+→ IF ULTIMATE LOOP ITSELF IS THE MATERIAL SUBJECT: MAINTENANCE GATE
+→ FREE / BOUNDED TRIAGE → HUMAN NOTIFICATION
+→ PAID MAINTENANCE ONLY AFTER EXACT-CANDIDATE HUMAN AUTHORIZATION + BOUNDED SPEND
+→ EXISTING DA → COUNTER-DA → INDEPENDENT REALITY VERIFIER → STOP / PROMOTION_ELIGIBLE
 → MATERIAL EXPOSURE CHANGE MAY REOPEN EXPOSURE GATE
 → PERIODIC CHALLENGER SWEEP + EVENT TRIGGERS
 → MATERIAL FAILURE / BETTER CHALLENGER / ERA CHANGE
@@ -200,6 +249,9 @@ Hard reminders:
 NO CURRENT LANDSCAPE SWEEP → NO SUPERIORITY CLAIM
 EXTERNAL CAPABILITY FEED != FOURTH LOOP
 EXPOSURE GATE != FOURTH DESTRUCTION
+MAINTENANCE GATE != FOURTH DESTRUCTION
+PAYMENT / API KEY / EXISTING CREDIT != SPEND AUTHORITY
+FAILED PAID ATTEMPT != PERMISSION TO RETRY
 PUBLIC ONCE != PUBLIC FOREVER
 EXPOSURE WARNING != VISIBILITY MUTATION AUTHORITY
 DEPLOYED != OBSERVED_CORRECT
@@ -210,6 +262,7 @@ TRACE OBSERVER != GOVERNOR
 
 → [Canonical method](METHOD.md)  
 → [Exposure Gate](EXPOSURE_GATE.md)  
+→ [Maintenance Gate](MAINTENANCE_GATE.md)  
 → [External Capability Feed](EXTERNAL_CAPABILITY_FEED.md)  
 → [TRACE observation layer](TRACE_OBSERVATION_LAYER.md)
 
